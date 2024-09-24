@@ -1,0 +1,7 @@
+{
+  "name": "gimmopro",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
