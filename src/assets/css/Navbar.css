@@ -1,0 +1,103 @@
+/* Styles globaux pour la barre de navigation */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff; /* Fond clair */
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #000000; /* Bordure noire */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+/* Conteneur pour le logo */
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Style pour l'image du logo */
+.logo-image {
+  height: 60px; 
+  margin-right: 10px;
+}
+
+/* Style pour le logo */
+.logo {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #000000; /* Couleur noire pour le logo */
+}
+
+/* Style pour les liens de navigation */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+/* Style pour chaque lien */
+.nav-links li {
+  display: flex;
+  align-items: center;
+}
+
+/* Style pour les liens de navigation */
+.nav-links a {
+  color: #000000; /* Texte noir */
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Effet au survol des liens */
+.nav-links a:hover {
+  background-color: #28a745; /* Vert au survol */
+  color: #ffffff; /* Texte blanc au survol */
+}
+
+/* Styles pour le bouton du menu burger */
+.menu-toggle {
+  display: none; /* Cacher par défaut sur desktop */
+  background: none;
+  font-size: 1.75rem;
+  color: #000000; /* Icône en noir */
+  cursor: pointer;
+}
+
+/* Afficher le menu burger sur mobile */
+@media (max-width: 768px) {
+  .nav-links {
+    display: none; /* Cacher par défaut */
+  }
+  .logo {
+    display: none; /* Cacher le logo sur mobile */
+  }
+
+  .nav-links.open {
+    display: flex; /* Afficher le menu quand il est ouvert */
+    flex-direction: column;
+    position: absolute; /* Positionnement absolu pour qu'il soit sous la navbar */
+    top: 100%; /* Place le menu juste en dessous de la barre de navigation */
+    right: 0;
+    width: 100%;
+    background-color: #ffffff; /* Fond clair */
+    padding: 2rem 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    z-index: 1000;
+  }
+
+  .menu-toggle {
+    display: block; 
+  }
+}

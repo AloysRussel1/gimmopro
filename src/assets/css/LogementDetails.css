@@ -1,0 +1,92 @@
+/* Styles pour la page des détails du logement */
+.logement-details-content {
+    position: relative;
+    top: 40px; 
+    
+}
+.logement-details-row{
+    text-align: center;
+}
+
+.search-filter-section {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.search-filter-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.custom-searchbar {
+    --background: #f1f1f1;
+    --placeholder-color: #555;
+    --color: #333;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.custom-select {
+    margin-top: 10px;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.control-section {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.button-center {
+    display: flex;
+    justify-content: center; /* Centre le bouton */
+}
+
+.custom-button {
+    --background: #028418;
+    --color: #fff;
+    margin-right: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    align-content: center;
+}
+
+.custom-button:hover {
+    --background: #4caf50;
+    --color: white;
+}
+
+.compartiment-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.compartiment-col {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.compartiment-card {
+    width: 100%;
+    max-width: 350px;
+    border: 2px solid #028418; /* Bordure verte */
+    border-radius: 10px;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.compartiment-card:hover {
+    transform: scale(1.05);
+}
+
+.compartiment-type {
+    color: #028418; /* Couleur pour le type de compartiment */
+}

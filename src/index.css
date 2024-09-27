@@ -1,0 +1,7 @@
+.content-container {
+    padding: 20px; /* Ajoute du padding autour du contenu */
+    margin-top: 60px; /* Ajustez la valeur en fonction de la hauteur de votre Navbar */
+    background-color: #f9f9f9; /* Fond clair pour le contenu */
+    min-height: calc(100vh - 60px); /* Assure que le conteneur prend tout l'espace restant */
+  }
+  

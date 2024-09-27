@@ -1,0 +1,59 @@
+.compartiment-details-content {
+  position: relative;
+  top: 40px;
+  padding: 20px;
+  background-color: #ffffff; /* Fond blanc */
+}
+
+.header-section {
+  background-color: #6c757d; /* Gris clair */
+  color: white; /* Texte en blanc */
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.header-section h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.header-section p {
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+.details-section {
+  background-color: #f5f5f5; /* Fond gris très clair */
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.details-section h3 {
+  margin-top: 0;
+  color: #000000; /* Noir */
+}
+
+.action-buttons {
+  margin-top: 20px;
+}
+
+.btn-modifier {
+  --background: #028418;
+  --color: #fff;
+  transition: background-color 0.3s;
+}
+
+.btn-modifier:hover {
+  background-color: #009624; /* Vert plus foncé au survol */
+}
+
+.btn-supprimer {
+  --background: #333333;
+  --color: #fff;
+  transition: background-color 0.3s;
+}
+
+.btn-supprimer:hover {
+  background-color: #333333; /* Noir au survol */
+}

@@ -1,0 +1,114 @@
+/* Fond général clair avec padding pour espacer le contenu du haut de la page */
+.custom-content {
+    position: relative;
+    top: 40px;
+    background-color: #f4f4f4; /* Fond gris clair pour le contenu général */
+    padding-top: 100px;
+    padding-left: 20px;
+    padding-right: 20px;
+    min-height: 100vh; /* Pour couvrir toute la hauteur de la page */
+}
+
+/* Barre de recherche stylisée */
+.custom-searchbar {
+    --background: #ffffff; /* Fond blanc pour la barre de recherche */
+    --color: #000; /* Texte noir */
+    --ion-color-primary: #28a745; /* Couleur verte pour les éléments actifs */
+    margin-bottom: 15px;
+    border-radius: 8px; /* Bords arrondis pour une apparence douce */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour l'effet 3D */
+}
+
+/* Bouton "Ajouter un logement" stylisé */
+.add-logement-btn {
+    --background: #28a745; /* Vert vif pour le bouton Ajouter */
+    --color: #ffffff; /* Texte blanc */
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Ombre pour donner un effet flottant */
+    transition: background-color 0.3s ease;
+    border: none; /* Pas de bordure */
+    padding: 10px 15px; /* Espacement intérieur */
+    cursor: pointer; /* Curseur en main */
+   
+}
+
+.add-logement-btn:hover {
+    --background: #1e7c34; /* Assombrir le vert au survol */
+}
+
+/* Style des cartes de logements */
+.logement-card {
+    margin: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Légère ombre pour l'effet 3D */
+    border-radius: 12px; /* Coins arrondis */
+    background-color: #ffffff; /* Fond blanc pour les cartes */
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    padding: 15px; /* Padding à l'intérieur des cartes */
+    border-radius: 8px; /* Coins arrondis */
+    margin-bottom: 20px; /* Espacement entre les cartes */
+}
+
+.logement-card:hover {
+    transform: scale(1.05); /* Zoom sur survol */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Intensification de l'ombre */
+}
+
+/* Image responsive avec ajustement */
+.logement-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover; /* Pour ajuster l'image à l'espace disponible */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Header de la carte */
+.logement-header {
+    background-color: #28a745; /* Fond vert pour le titre */
+    color: white;
+    padding: 10px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Contenu de la carte */
+.logement-content {
+    padding: 15px;
+    background-color: #f9f9f9; /* Fond légèrement gris pour contraste avec la carte */
+    color: #333; /* Texte légèrement plus sombre pour meilleure lisibilité */
+}
+
+/* Bouton Voir Plus */
+.voir-plus-btn {
+    --background: #28a745; /* Vert vif pour le bouton Ajouter */
+    --color: #ffffff; /* Texte blanc */
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Ombre pour donner un effet flottant */
+    transition: background-color 0.3s ease;
+    border: none; /* Pas de bordure */
+    padding: 10px 15px; /* Espacement intérieur */
+    cursor: pointer; /* Curseur en main */
+}
+
+.voir-plus-btn:hover {
+    --background: #1e7c34; /* Assombrir le vert au survol */
+}
+
+/* Disposition responsive */
+@media (max-width: 768px) {
+    .logement-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .logement-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
