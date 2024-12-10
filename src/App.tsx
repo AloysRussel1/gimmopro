@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import './index.css';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import LogementPage from './pages/LogementPage';
 import LogementDetails from './pages/LogementDetails';
@@ -10,17 +11,15 @@ import CompartimentDetailsPage from './pages/CompartimentDetails';
 import AddCompartimentForm from './components/AddCompartimentForm';
 import AddLogementForm from './components/AddLogementForm';
 import TenantManagement from './pages/TenantManagement';
-
+import AddTenantForm from './components/AddTenantForm';
+import PaymentManagement from './pages/PaymentManagement';
+import PaymentHistory from './pages/PaymentHistory';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
-
-/* Basic CSS for apps built with Ionic */
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
-
-/* Optional CSS utils that can be commented out */
 import '@ionic/react/css/padding.css';
 import '@ionic/react/css/float-elements.css';
 import '@ionic/react/css/text-alignment.css';
@@ -37,19 +36,24 @@ const App: React.FC = () => (
       <IonReactRouter>
         <IonRouterOutlet>
           {/* Routes */}
-          <Route path="/" component={Dashboard} exact />
+          <Route path="/" component={LogementPage} exact />
           <Route path="/dashboard" component={Dashboard} exact />
           <Route path="/logement" component={LogementPage} exact />
           <Route path="/logement/:id" component={LogementDetails} exact />
           <Route path="/compartiment/:id" component={CompartimentDetailsPage} exact />
-          <Route path="/ajouter-compartiment" component={AddCompartimentForm} exact />
-          <Route path="/ajouter-logement" component={AddLogementForm} exact/>
-          <Route path="/locataire" component={TenantManagement} exact/>
+          <Route path="/logement/:logement_id/ajouter-compartiment" component={AddCompartimentForm} exact />
+          <Route path="/ajouter-logement" component={AddLogementForm} exact />
+          <Route path="/locataire" component={TenantManagement} exact />
+          <Route path="/ajouter-locataire" component={AddTenantForm} exact />
+          <Route path="/paiement" component={PaymentManagement} exact />
+          <Route path="/historique/:id" component={PaymentHistory} exact />
+          
           {/* Redirection si nécessaire */}
-          <Redirect exact from="/" to="/dashboard" />
+          <Redirect exact from="/" to="/logement" />
         </IonRouterOutlet>
-      </IonReactRouter> 
+      </IonReactRouter>
     </div>
+    <Footer /> {/* Footer en bas de la page */}
   </IonApp>
 );
 

@@ -31,12 +31,12 @@ interface Locataire {
 }
 
 interface AddOccupantFormProps {
-  existingData?: Locataire;
+  existingData?: Locataire; // Propriété pour les données existantes
 }
 
 const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<Locataire>({
+  const [formData, setFormData] = useState({
     nom_complet: '',
     telephone: '',
     cni: '',
@@ -45,19 +45,13 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
     date_debut_contrat: '',
     loyer: '',
     date_prochain_paiement: '',
-    statut: 'Actif',
+    statut: 'Actif', // Par défaut, statut Actif
   });
 
+  // Gérer le changement dans le formulaire
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-
-    // Formater explicitement les dates avant de les ajouter à `formData`
-    if (name === 'date_debut_contrat' || name === 'date_prochain_paiement') {
-      const formattedDate = new Date(value).toISOString().split('T')[0];
-      setFormData((prev) => ({ ...prev, [name]: formattedDate }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const nextStep = () => setStep(step + 1);
@@ -67,14 +61,7 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
     e.preventDefault();
 
     try {
-      // Vérification finale avant envoi
-      const payload = {
-        ...formData,
-        date_debut_contrat: new Date(formData.date_debut_contrat).toISOString().split('T')[0],
-        date_prochain_paiement: new Date(formData.date_prochain_paiement).toISOString().split('T')[0],
-      };
-
-      const response = await axios.post(`occupants/`, payload);
+      const response = await axios.post(`occupants/`, formData);
       console.log('Occupant ajouté avec succès:', response.data);
       alert('Occupant ajouté avec succès !');
     } catch (error) {
@@ -170,7 +157,6 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
                   name="date_debut_contrat"
                   value={formData.date_debut_contrat}
                   onIonChange={handleChange}
-                  presentation="date"
                 />
               </IonItem>
             </>
@@ -199,7 +185,6 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
                   name="date_prochain_paiement"
                   value={formData.date_prochain_paiement}
                   onIonChange={handleChange}
-                  presentation="date"
                 />
               </IonItem>
             </>

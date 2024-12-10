@@ -1,4 +1,9 @@
 /* Styles de la barre d'outils */
+.tenant-management{
+    position: relative;
+    top : 40px;
+}
+
 .custom-toolbar {
     --background: black; /* Couleur noire pour la barre d'outils */
     --color: white; /* Texte blanc */
@@ -27,6 +32,18 @@
 /* Sélecteur de filtre */
 .ion-select {
     width: 100%; /* Prendre toute la largeur */
+}
+
+ion-input,
+ion-select {
+  --background: #f0f0f0;
+  border-radius: 5px;
+  padding: 8px;
+}
+
+ion-button {
+  width: 100%;
+  padding: 10px 0;
 }
 
 /* Bouton Ajouter un locataire */

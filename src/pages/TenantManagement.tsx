@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonSearchbar, IonSelect, IonSelectOption, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent, IonIcon } from '@ionic/react';
 import { addCircle, create, trash } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
 import './../assets/css/TenantManagement.css';
 
 interface Tenant {
@@ -8,45 +9,63 @@ interface Tenant {
   name: string;
   contact: string;
   logement: string;
+  compartiment: string;
   status: string;
   startDate: string;
-  rent: number; // Loyer versé par mois
-  nextPaymentDate: string; // Date de prochain paiement
-  cniNumber: string; // Numéro de CNI
-  phoneNumber: string; // Numéro de portable
-  contractNumber: string; // Numéro de contrat
+  rent: number;
+  nextPaymentDate: string;
+  cniNumber: string;
+  phoneNumber: string;
+  contractNumber: string;
 }
 
 const TenantManagement: React.FC = () => {
   const [searchText, setSearchText] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterLogement, setFilterLogement] = useState<string>(''); // Ajout du filtre de logement
 
   const tenants: Tenant[] = [
     {
       id: 1,
       name: 'Aloys M.',
       contact: 'aloystenant@mail.com',
-      logement: 'Studio 101',
+      logement: 'Mon domicile 1',
+      compartiment: 'Studio 101',
       status: 'Actif',
       startDate: '2023-07-01',
       rent: 500,
       nextPaymentDate: '2024-10-01',
       cniNumber: 'CNI123456789',
       phoneNumber: '+237 690 123 456',
-      contractNumber: 'CONTRACT001'
+      contractNumber: 'CONTRACT001',
     },
     {
       id: 2,
       name: 'Bénédicte P.',
       contact: 'benedictetenant@mail.com',
-      logement: 'Appartement A202',
+      logement: 'Mon domicile 1',
+      compartiment: 'Appartement A202',
       status: 'En retard de paiement',
       startDate: '2022-09-15',
       rent: 600,
       nextPaymentDate: '2024-10-15',
       cniNumber: 'CNI987654321',
       phoneNumber: '+237 691 654 321',
-      contractNumber: 'CONTRACT002'
+      contractNumber: 'CONTRACT002',
+    },
+    {
+      id: 3,
+      name: 'Clara S.',
+      contact: 'clara@mail.com',
+      logement: 'Mon domicile 2',
+      compartiment: 'Appartement B201',
+      status: 'Actif',
+      startDate: '2023-05-12',
+      rent: 600,
+      nextPaymentDate: '2024-11-01',
+      cniNumber: 'CNI111222333',
+      phoneNumber: '+237 693 876 543',
+      contractNumber: 'CONTRACT003',
     }
   ];
 
@@ -54,9 +73,10 @@ const TenantManagement: React.FC = () => {
     setSearchText(e.detail.value);
   };
 
-  const filteredTenants = tenants.filter(tenant => 
+  const filteredTenants = tenants.filter(tenant =>
     tenant.name.toLowerCase().includes(searchText.toLowerCase()) &&
-    (filterStatus === '' || tenant.status === filterStatus)
+    (filterStatus === '' || tenant.status === filterStatus) &&
+    (filterLogement === '' || tenant.logement === filterLogement) // Filtrage par logement
   );
 
   const groupedTenants = filteredTenants.reduce((acc, tenant) => {
@@ -67,6 +87,20 @@ const TenantManagement: React.FC = () => {
     return acc;
   }, {} as Record<string, Tenant[]>);
 
+  const history = useHistory();
+
+  const handleAddTenant = () => {
+    history.push('/ajouter-locataire');
+  };
+
+  const handleModifyTenant = (tenant: Tenant) => {
+    history.push('/ajouter-locataire', { tenant });
+  };
+
+  const handleDeleteTenant = (id: number) => {
+    console.log(`Suppression du locataire avec l'ID: ${id}`);
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -75,7 +109,7 @@ const TenantManagement: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent className="ion-padding">
+      <IonContent className="tenant-management">
         <div className="header-actions">
           <IonSearchbar value={searchText} onIonInput={handleSearch} placeholder="Rechercher un locataire..." />
           <IonSelect value={filterStatus} placeholder="Filtrer par statut" onIonChange={(e) => setFilterStatus(e.detail.value)}>
@@ -83,7 +117,15 @@ const TenantManagement: React.FC = () => {
             <IonSelectOption value="Actif">Actif</IonSelectOption>
             <IonSelectOption value="En retard de paiement">En retard de paiement</IonSelectOption>
           </IonSelect>
-          <IonButton className="add-button">
+
+          {/* Sélection du logement */}
+          <IonSelect value={filterLogement} placeholder="Filtrer par logement" onIonChange={(e) => setFilterLogement(e.detail.value)}>
+            <IonSelectOption value="">Tous les logements</IonSelectOption>
+            <IonSelectOption value="Mon domicile 1">Mon domicile 1</IonSelectOption>
+            <IonSelectOption value="Mon domicile 2">Mon domicile 2</IonSelectOption>
+          </IonSelect>
+
+          <IonButton className="add-button" onClick={handleAddTenant}>
             <IonIcon slot="start" icon={addCircle} />
             Ajouter un locataire
           </IonButton>
@@ -91,10 +133,11 @@ const TenantManagement: React.FC = () => {
 
         {Object.entries(groupedTenants).map(([logement, tenants]) => (
           <div key={logement}>
+            <h2>{logement}</h2> {/* Afficher le nom du logement */}
             {tenants.map(tenant => (
               <IonCard key={tenant.id} className="tenant-card">
                 <IonCardHeader>
-                  <IonCardSubtitle>{tenant.logement}</IonCardSubtitle>
+                  <IonCardSubtitle>{tenant.compartiment}</IonCardSubtitle> {/* Afficher le compartiment occupé */}
                   <IonCardTitle>{tenant.name}</IonCardTitle>
                 </IonCardHeader>
                 <IonCardContent>
@@ -119,11 +162,11 @@ const TenantManagement: React.FC = () => {
                   </div>
 
                   <div className="actions">
-                    <IonButton className="modify-button">
+                    <IonButton className="modify-button" onClick={() => handleModifyTenant(tenant)}>
                       <IonIcon slot="start" icon={create} />
                       Modifier
                     </IonButton>
-                    <IonButton className="delete-button">
+                    <IonButton className="delete-button" onClick={() => handleDeleteTenant(tenant.id)}>
                       <IonIcon slot="start" icon={trash} />
                       Supprimer
                     </IonButton>

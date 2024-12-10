@@ -20,10 +20,10 @@ const Navbar = () => {
         {isOpen ? <FaTimes /> : <FaBars />} {/* Affiche une croix ou un menu burger selon l'état */}
       </button>
       <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
-        <li><a href="/dashboard" onClick={toggleMenu}><FaHome /> Dashboard</a></li>
         <li><a href="/logement" onClick={toggleMenu}><FaClipboardList /> Logements</a></li>
         <li><a href="/locataire" onClick={toggleMenu}><FaUser /> Locataires</a></li>
         <li><a href="/paiement" onClick={toggleMenu}><FaMoneyBillWave /> Paiements</a></li>
+        <li><a href="/dashboard" onClick={toggleMenu}><FaHome /> Dashboard</a></li>
       </ul>
     </nav>
   );

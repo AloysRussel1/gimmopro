@@ -30,7 +30,6 @@
     border: none; /* Pas de bordure */
     padding: 10px 15px; /* Espacement intérieur */
     cursor: pointer; /* Curseur en main */
-   
 }
 
 .add-logement-btn:hover {
@@ -44,9 +43,7 @@
     border-radius: 12px; /* Coins arrondis */
     background-color: #ffffff; /* Fond blanc pour les cartes */
     transition: transform 0.3s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre légère */
     padding: 15px; /* Padding à l'intérieur des cartes */
-    border-radius: 8px; /* Coins arrondis */
     margin-bottom: 20px; /* Espacement entre les cartes */
 }
 
@@ -68,9 +65,13 @@
 .logement-header {
     background-color: #28a745; /* Fond vert pour le titre */
     color: white;
+    text-align: center;
+    font-size: large;
+    font-weight: 900;
     padding: 10px;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+    margin-bottom: 30px;
 }
 
 /* Contenu de la carte */
@@ -78,6 +79,13 @@
     padding: 15px;
     background-color: #f9f9f9; /* Fond légèrement gris pour contraste avec la carte */
     color: #333; /* Texte légèrement plus sombre pour meilleure lisibilité */
+    font-size:large;
+}
+
+/* Style du titre du logement */
+.logement-title {
+    font-size: 1.2em; /* Taille de police réduite */
+    font-weight: normal; /* Moins gras */
 }
 
 /* Bouton Voir Plus */
@@ -97,18 +105,10 @@
     --background: #1e7c34; /* Assombrir le vert au survol */
 }
 
-/* Disposition responsive */
-@media (max-width: 768px) {
-    .logement-col {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
+/* Disposition responsive pour les colonnes */
+.logement-col {
+    display: flex;
+    justify-content: center; /* Centrer les cartes dans la colonne */
+    align-items: center; /* Centrer verticalement */
+    margin-bottom: 15px; /* Espacement en bas des colonnes */
 }
-
-@media (max-width: 576px) {
-    .logement-col {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-}
-

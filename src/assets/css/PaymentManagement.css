@@ -1,0 +1,97 @@
+.payment-management-content {
+  background-color: white;
+  padding: 40px 20px 20px;
+  position: relative;
+  top: 60px
+}
+
+.ion-searchbar {
+  margin-bottom: 20px;
+}
+
+.logement-card {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tenant-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tenant-row:last-child {
+  border-bottom: none;
+}
+
+.tenant-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+}
+
+.payment-info p {
+  margin: 0;
+  font-size: 14px;
+  color: black;
+}
+
+.status-overdue {
+  color: red;
+  font-weight: bold;
+}
+
+.status-up-to-date {
+  color: green;
+  font-weight: bold;
+}
+
+.tenant-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.custom-button {
+  margin-left: 10px;
+  --background: #028418;
+  --color: white;
+}
+
+.ion-toolbar {
+  background-color: black;
+}
+
+.ion-title {
+  color: white;
+}
+
+.ion-card-header {
+  background-color: #e0e0e0;
+}
+
+.ion-card-title {
+  color: black;
+  font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  .tenant-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tenant-actions {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .custom-button {
+    margin-left: 0;
+    margin-right: 10px;
+  }
+}

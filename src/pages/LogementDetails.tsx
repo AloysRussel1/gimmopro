@@ -18,15 +18,17 @@ import {
   IonIcon,
 } from '@ionic/react';
 import { addOutline, trashOutline, createOutline, informationCircleOutline } from 'ionicons/icons';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
+import axiosInstance from './../api/axiosConfig'; // Importation de votre fichier Axios
 import './../assets/css/LogementDetails.css';
 
 interface Compartiment {
   id: number;
-  type: 'Appartement' | 'Studio' | 'Chambre' | 'Boutique';
+  type: string; // Pas de types fixes pour correspondre aux données
   nom: string;
   statut: string;
-  occupant: string;
+  occupant: string | null;
+  logement: number; // Correspondance correcte avec la clé logement
 }
 
 interface Logement {
@@ -35,42 +37,50 @@ interface Logement {
   localisation: string;
   description: string;
   images: string[];
-  compartiments: Compartiment[];
 }
 
 const LogementDetailsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string>('Tous');
   const [compartiments, setCompartiments] = useState<Compartiment[]>([]);
-  const history = useHistory(); // Initialiser useHistory
-
-  const logement: Logement = {
-    id: 1,
-    nom: 'Résidence du Parc',
-    localisation: '123 Rue de la Liberté, Paris',
-    description: 'Un bel immeuble avec plusieurs appartements et studios.',
-    images: ['image1.jpg', 'image2.jpg'],
-    compartiments: [
-      { id: 1, type: 'Appartement', nom: 'Appartement 1', statut: 'Occupé', occupant: 'John Doe' },
-      { id: 2, type: 'Studio', nom: 'Studio A', statut: 'Vacant', occupant: 'N/A' },
-      { id: 3, type: 'Chambre', nom: 'Chambre B', statut: 'Occupé', occupant: 'Jane Doe' },
-      { id: 4, type: 'Boutique', nom: 'Boutique Z', statut: 'Vacant', occupant: 'N/A' },
-    ],
-  };
+  const [logement, setLogement] = useState<Logement | null>(null);
+  const history = useHistory();
+  const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    setCompartiments(logement.compartiments);
-  }, []);
+    const fetchLogementDetails = async () => {
+      try {
+        const response = await axiosInstance.get(`/logements/${id}`);
+        setLogement(response.data);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des détails du logement:', error);
+      }
+    };
+
+    const fetchCompartiments = async () => {
+      try {
+        const response = await axiosInstance.get(`/logements/${id}/compartiments/`);
+        setCompartiments(response.data);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des compartiments:', error);
+      }
+    };
+
+    if (id) {
+      fetchLogementDetails();
+      fetchCompartiments();
+    }
+  }, [id]);
 
   const filteredCompartiments = compartiments.filter((compartiment) => {
-    return (
-      (filter === 'Tous' || compartiment.type === filter) &&
-      compartiment.nom.toLowerCase().includes(search.toLowerCase())
-    );
+    const logementCorrespondance = compartiment.logement === parseInt(id); // Vérifie la correspondance
+    const typeCorrespondance = filter === 'Tous' || compartiment.type.toLowerCase() === filter.toLowerCase();
+    const nomCorrespondance = compartiment.nom.toLowerCase().includes(search.toLowerCase());
+    return logementCorrespondance && typeCorrespondance && nomCorrespondance;
   });
 
   const handleAddCompartiment = () => {
-    history.push('/ajouter-compartiment');
+    history.push(`/logement/${id}/ajouter-compartiment`);
   };
 
   const handleDetailsClick = (id: number) => {
@@ -78,17 +88,24 @@ const LogementDetailsPage: React.FC = () => {
   };
 
   const handleEditCompartiment = (compartiment: Compartiment) => {
-    // Naviguer vers la page d'ajout de compartiment avec les données du compartiment à modifier
     history.push({
       pathname: '/ajouter-compartiment',
-      state: { compartiment }, // Passer les informations actuelles du compartiment
+      state: { compartiment },
     });
   };
 
-  const handleDeleteCompartiment = (id: number) => {
-    const updatedCompartiments = compartiments.filter(comp => comp.id !== id);
-    setCompartiments(updatedCompartiments);
+  const handleDeleteCompartiment = async (id: number) => {
+    try {
+      await axiosInstance.delete(`/compartiments/${id}`);
+      setCompartiments(compartiments.filter((comp) => comp.id !== id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression du compartiment:', error);
+    }
   };
+
+  if (!logement) {
+    return <p>Chargement...</p>;
+  }
 
   return (
     <IonPage>
@@ -152,27 +169,19 @@ const LogementDetailsPage: React.FC = () => {
                 <IonCol key={compartiment.id} size="12" size-md="6" size-lg="4" className="compartiment-col">
                   <IonCard className="compartiment-card">
                     <IonCardHeader>
-                      <IonTitle>{compartiment.nom}</IonTitle>
-                      <p className="compartiment-type">{compartiment.type}</p>
+                      <IonTitle className="compartiment-name">{compartiment.nom}</IonTitle>
                     </IonCardHeader>
                     <IonCardContent>
+                      <p className="compartiment-type">{compartiment.type}</p>
                       <p><strong>Statut:</strong> {compartiment.statut}</p>
-                      <p><strong>Occupant:</strong> {compartiment.occupant}</p>
-                      <IonButton className='custom-button' onClick={() => handleDetailsClick(compartiment.id)}>
+                      <p><strong>Occupant:</strong> {compartiment.occupant || 'Non assigné'}</p>
+                      <IonButton size="small" className="custom-button" onClick={() => handleDetailsClick(compartiment.id)}>
                         <IonIcon icon={informationCircleOutline} /> Détails
                       </IonButton>
-                      <IonButton
-                        color="dark"
-                        className="custom-button"
-                        onClick={() => handleEditCompartiment(compartiment)}
-                      >
+                      <IonButton size="small" color="dark" className="custom-button" onClick={() => handleEditCompartiment(compartiment)}>
                         <IonIcon icon={createOutline} /> Modifier
                       </IonButton>
-                      <IonButton
-                        color="danger"
-                        className="custom-button"
-                        onClick={() => handleDeleteCompartiment(compartiment.id)}
-                      >
+                      <IonButton size="small" color="danger" className="custom-button" onClick={() => handleDeleteCompartiment(compartiment.id)}>
                         <IonIcon icon={trashOutline} /> Supprimer
                       </IonButton>
                     </IonCardContent>

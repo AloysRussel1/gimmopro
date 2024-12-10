@@ -16,6 +16,7 @@ import {
   IonProgressBar,
 } from '@ionic/react';
 import './../assets/css/AddLogementForm.css';
+import { addLogement } from '../api/logementService';
 
 const AddLogementForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -26,6 +27,7 @@ const AddLogementForm: React.FC = () => {
   });
 
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -36,10 +38,20 @@ const AddLogementForm: React.FC = () => {
     setFormData({ ...formData, image: e.target.files[0] });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logique pour enregistrer le logement
-    console.log(formData);
+    setLoading(true);
+    
+    try {
+      // Appel à la fonction addLogement pour ajouter un logement
+      const result = await addLogement(formData);
+      console.log('Logement ajouté:', result);
+      // Vous pouvez rediriger l'utilisateur ou afficher un message de succès ici.
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du logement:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextStep = () => {
@@ -100,7 +112,7 @@ const AddLogementForm: React.FC = () => {
             </>
           )}
 
-          {step === 2 && (
+          {/* {step === 2 && (
             <>
               <IonItem>
                 <IonLabel position="stacked">Image</IonLabel>
@@ -112,7 +124,7 @@ const AddLogementForm: React.FC = () => {
                 />
               </IonItem>
             </>
-          )}
+          )} */}
 
           <IonRow>
             <IonCol>
@@ -128,8 +140,8 @@ const AddLogementForm: React.FC = () => {
                   Suivant
                 </IonButton>
               ) : (
-                <IonButton expand="block" type="submit" className='btn'>
-                  Ajouter
+                <IonButton expand="block" type="submit" className='btn' disabled={loading}>
+                  {loading ? 'Ajout en cours...' : 'Ajouter'}
                 </IonButton>
               )}
             </IonCol>

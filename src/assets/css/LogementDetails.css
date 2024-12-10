@@ -1,10 +1,9 @@
-/* Styles pour la page des détails du logement */
 .logement-details-content {
     position: relative;
     top: 40px; 
-    
 }
-.logement-details-row{
+
+.logement-details-row {
     text-align: center;
 }
 
@@ -50,10 +49,9 @@
     --background: #028418;
     --color: #fff;
     margin-right: 10px;
-    font-size: 14px;
+    font-size: 12px; /* Taille du texte réduite */
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    align-content: center;
 }
 
 .custom-button:hover {
@@ -78,15 +76,17 @@
     max-width: 350px;
     border: 2px solid #028418; /* Bordure verte */
     border-radius: 10px;
-    transition: transform 0.2s;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.compartiment-name {
+    font-size: 1.2em;
+    font-weight: bold;
     text-align: center;
 }
 
-.compartiment-card:hover {
-    transform: scale(1.05);
-}
-
 .compartiment-type {
-    color: #028418; /* Couleur pour le type de compartiment */
+    font-size: 0.9em;
+    color: #888;
+    text-align: center; /* Centre le type */
+    margin-bottom: 10px; /* Ajout d'un espacement sous le type */
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import axiosInstance from './../api/axiosConfig'; 
 import {
   IonButton,
   IonCard,
@@ -18,10 +19,6 @@ import {
 } from '@ionic/react';
 import './../assets/css/LogementPage.css'; // Fichier de style spécifique
 
-import logement1 from './../assets/images/logement1.png';
-import logement2 from './../assets/images/logement2.png';
-import logement3 from './../assets/images/logement3.png';
-
 interface Logement {
   id: number;
   nom: string;
@@ -33,43 +30,35 @@ interface Logement {
 const LogementPage: React.FC = () => {
   const [logements, setLogements] = useState<Logement[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Hook pour l'historique de navigation
   const history = useHistory();
 
   useEffect(() => {
     const fetchLogements = async () => {
-      const initialLogements: Logement[] = [
-        {
-          id: 1,
-          nom: 'Mon domicile 1',
-          localisation: 'Paris, France',
-          description: 'Maison spacieuse avec jardin et piscine.',
-          imageUrl: logement1,
-        },
-        {
-          id: 2,
-          nom: 'Mon domicile 2',
-          localisation: 'Lyon, France',
-          description: 'Appartement moderne au centre-ville.',
-          imageUrl: logement2,
-        },
-        {
-          id: 3,
-          nom: 'Mon domicile 3',
-          localisation: 'Marseille, France',
-          description: 'Studio confortable près de la plage.',
-          imageUrl: logement3,
-        },
-      ];
-      setLogements(initialLogements);
+      setLoading(true);
+      setError(null); // Réinitialiser les erreurs avant de tenter une nouvelle requête
+
+      try {
+        const response = await axiosInstance.get('/logements_list'); // Utilisation de votre configuration axios
+
+        // On suppose que la réponse est bien au format JSON et on l'assigne
+        setLogements(response.data);
+      } catch (err) {
+        console.error('Erreur lors du chargement des logements:', err);
+        setError('Erreur lors du chargement des logements. Veuillez réessayer plus tard.');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchLogements();
   }, []);
 
   const handleAddLogement = () => {
-    history.push('/ajouter-logement'); 
+    history.push('/ajouter-logement');
   };
 
   const handleSearchChange = (event: CustomEvent) => {
@@ -102,6 +91,10 @@ const LogementPage: React.FC = () => {
         <IonButton expand="full" onClick={handleAddLogement} className="add-logement-btn">
           Ajouter un Logement
         </IonButton>
+
+        {loading && <p>Chargement en cours...</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+
         <IonGrid>
           <IonRow>
             {filteredLogements.map(logement => (
@@ -113,9 +106,8 @@ const LogementPage: React.FC = () => {
                 className="logement-col"
               >
                 <IonCard className="logement-card">
-                  <img src={logement.imageUrl} alt={logement.nom} className="logement-image" />
                   <IonCardHeader className="logement-header">
-                    <IonCardTitle>{logement.nom}</IonCardTitle>
+                    <IonCardTitle className="logement-title">{logement.nom}</IonCardTitle>
                   </IonCardHeader>
                   <IonCardContent className="logement-content">
                     <p><strong>Localisation:</strong> {logement.localisation}</p>

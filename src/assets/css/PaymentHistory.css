@@ -1,0 +1,40 @@
+.payment-history-content {
+    background-color: #f8f9fa; /* Fond clair */
+    color: #343a40; /* Texte sombre */
+    padding: 20px; /* Espacement autour du contenu */
+    font-family: Arial, sans-serif; /* Police claire et lisible */
+    position: relative;
+    top: 40px;
+  }
+  
+  .payment-card {
+    background-color: white; /* Fond blanc pour la carte */
+    border-radius: 8px; /* Coins arrondis */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    margin: 10px 0; /* Espacement entre les cartes */
+  }
+  
+  .card-title {
+    color: #28a745; /* Vert pour le titre */
+    font-weight: bold; /* Gras pour le titre */
+  }
+  
+  .payment-row {
+    margin-bottom: 15px; /* Espace entre les lignes */
+    padding: 10px; /* Espacement intérieur */
+    border: 1px solid #dee2e6; /* Bordure légère pour chaque paiement */
+    border-radius: 5px; /* Coins arrondis pour chaque paiement */
+    background-color: #f1f1f1; /* Fond léger pour distinguer chaque paiement */
+  }
+  
+  .payment-col {
+    display: flex; /* Aligne le contenu au centre */
+    align-items: center; /* Aligne verticalement au centre */
+    justify-content: center; /* Centre le contenu */
+  }
+  
+  .payment-label {
+    color: #495057; /* Couleur sombre pour le texte des paiements */
+    text-align: center; /* Centrer le texte */
+  }
+  
