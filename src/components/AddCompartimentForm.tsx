@@ -5,7 +5,6 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonGrid,
   IonRow,
   IonCol,
   IonButton,
@@ -50,8 +49,6 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-
-    // Formater explicitement les dates avant de les ajouter à `formData`
     if (name === 'date_debut_contrat' || name === 'date_prochain_paiement') {
       const formattedDate = new Date(value).toISOString().split('T')[0];
       setFormData((prev) => ({ ...prev, [name]: formattedDate }));
@@ -65,28 +62,23 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      // Vérification finale avant envoi
       const payload = {
         ...formData,
         date_debut_contrat: new Date(formData.date_debut_contrat).toISOString().split('T')[0],
         date_prochain_paiement: new Date(formData.date_prochain_paiement).toISOString().split('T')[0],
       };
-
       const response = await axios.post(`occupants/`, payload);
       console.log('Occupant ajouté avec succès:', response.data);
       alert('Occupant ajouté avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'occupant:', error.response?.data || error.message);
+    } catch (error: unknown) {
+      console.error('Erreur lors de l\'ajout de l\'occupant:', error);
       alert('Erreur lors de l\'ajout de l\'occupant.');
     }
   };
 
   useEffect(() => {
-    if (existingData) {
-      setFormData(existingData);
-    }
+    if (existingData) setFormData(existingData);
   }, [existingData]);
 
   return (
@@ -98,7 +90,6 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
       </IonHeader>
       <IonContent className="ion-padding form-page">
         <IonProgressBar value={step / 7} className="progress-bar" />
-
         <form onSubmit={handleSubmit} className="form-classic">
           <h2>Étape {step}</h2>
 
@@ -106,112 +97,59 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
             <>
               <IonItem>
                 <IonLabel position="stacked">Nom du Locataire</IonLabel>
-                <IonInput
-                  name="nom_complet"
-                  value={formData.nom_complet}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le nom du locataire"
-                />
+                <IonInput name="nom_complet" value={formData.nom_complet} onIonInput={handleChange} placeholder="Entrez le nom du locataire" />
               </IonItem>
               <IonItem>
                 <IonLabel position="stacked">Contact du Locataire</IonLabel>
-                <IonInput
-                  name="telephone"
-                  value={formData.telephone}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le contact du locataire"
-                />
+                <IonInput name="telephone" value={formData.telephone} onIonInput={handleChange} placeholder="Entrez le contact du locataire" />
               </IonItem>
               <IonItem>
                 <IonLabel position="stacked">CNI du Locataire</IonLabel>
-                <IonInput
-                  name="cni"
-                  value={formData.cni}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le numéro de CNI"
-                />
+                <IonInput name="cni" value={formData.cni} onIonInput={handleChange} placeholder="Entrez le numéro de CNI" />
               </IonItem>
             </>
           )}
 
           {step === 2 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Email du Locataire</IonLabel>
-                <IonInput
-                  name="email"
-                  value={formData.email}
-                  onIonInput={handleChange}
-                  placeholder="Entrez l'email du locataire"
-                />
-              </IonItem>
-            </>
+            <IonItem>
+              <IonLabel position="stacked">Email du Locataire</IonLabel>
+              <IonInput name="email" value={formData.email} onIonInput={handleChange} placeholder="Entrez l'email du locataire" />
+            </IonItem>
           )}
 
           {step === 3 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Numéro de Contrat</IonLabel>
-                <IonInput
-                  name="numero_contrat"
-                  value={formData.numero_contrat}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le numéro du contrat"
-                />
-              </IonItem>
-            </>
+            <IonItem>
+              <IonLabel position="stacked">Numéro de Contrat</IonLabel>
+              <IonInput name="numero_contrat" value={formData.numero_contrat} onIonInput={handleChange} placeholder="Entrez le numéro du contrat" />
+            </IonItem>
           )}
 
           {step === 4 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Date de Début du Contrat</IonLabel>
-                <IonDatetime
-                  name="date_debut_contrat"
-                  value={formData.date_debut_contrat}
-                  onIonChange={handleChange}
-                  presentation="date"
-                />
-              </IonItem>
-            </>
+            <IonItem>
+              <IonLabel position="stacked">Date de Début du Contrat</IonLabel>
+              <IonDatetime name="date_debut_contrat" value={formData.date_debut_contrat} onIonChange={handleChange} presentation="date" />
+            </IonItem>
           )}
 
           {step === 5 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Loyer Mensuel</IonLabel>
-                <IonInput
-                  name="loyer"
-                  type="number"
-                  value={formData.loyer}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le montant du loyer"
-                />
-              </IonItem>
-            </>
+            <IonItem>
+              <IonLabel position="stacked">Loyer Mensuel</IonLabel>
+              <IonInput name="loyer" type="number" value={formData.loyer} onIonInput={handleChange} placeholder="Entrez le montant du loyer" />
+            </IonItem>
           )}
 
           {step === 6 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Date de Prochain Paiement</IonLabel>
-                <IonDatetime
-                  name="date_prochain_paiement"
-                  value={formData.date_prochain_paiement}
-                  onIonChange={handleChange}
-                  presentation="date"
-                />
-              </IonItem>
-            </>
+            <IonItem>
+              <IonLabel position="stacked">Date de Prochain Paiement</IonLabel>
+              <IonDatetime name="date_prochain_paiement" value={formData.date_prochain_paiement} onIonChange={handleChange} presentation="date" />
+            </IonItem>
           )}
 
           {step === 7 && (
             <div className="confirmation-section">
               <h3>Confirmation</h3>
               {Object.entries(formData).map(([key, value]) => (
-                <p key={key}>
-                  <strong>{key}:</strong> {value}
-                </p>
+                <p key={key}><strong>{key}:</strong> {value}</p>
               ))}
             </div>
           )}
@@ -219,20 +157,14 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
           <IonRow>
             <IonCol>
               {step > 1 && (
-                <IonButton expand="block" onClick={previousStep} className="btn">
-                  Précédent
-                </IonButton>
+                <IonButton expand="block" onClick={previousStep} className="btn">Précédent</IonButton>
               )}
             </IonCol>
             <IonCol>
               {step < 7 ? (
-                <IonButton expand="block" onClick={nextStep} className="btn">
-                  Suivant
-                </IonButton>
+                <IonButton expand="block" onClick={nextStep} className="btn">Suivant</IonButton>
               ) : (
-                <IonButton expand="block" type="submit" className="btn">
-                  Enregistrer
-                </IonButton>
+                <IonButton expand="block" type="submit" className="btn">Enregistrer</IonButton>
               )}
             </IonCol>
           </IonRow>
