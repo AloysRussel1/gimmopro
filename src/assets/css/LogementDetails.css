@@ -1,92 +1,99 @@
-.logement-details-content {
-    position: relative;
-    top: 40px; 
+@import './theme.css';
+
+.logement-details-content { --background: var(--g-bg); }
+
+.ld-header {
+  background: linear-gradient(135deg, #1A1710 0%, #13120D 100%);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--g-radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.ld-header__name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600;
+  color: var(--g-text);
+  margin-bottom: 8px;
+}
+.ld-header__loc {
+  font-size: 13px; color: var(--g-gold);
+  margin-bottom: 4px;
+}
+.ld-header__desc {
+  font-size: 13px; color: var(--g-text-2);
+  line-height: 1.5;
 }
 
-.logement-details-row {
-    text-align: center;
+.ld-controls {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.ld-controls ion-searchbar { flex: 1; }
+.ld-add-btn {
+  background: var(--g-gold);
+  color: #0A0A0F;
+  border: none;
+  border-radius: var(--g-radius-sm);
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 700;
+  white-space: nowrap; cursor: pointer;
+}
+.ld-add-btn:active { background: var(--g-gold-light); }
+
+.ld-filter {
+  background: var(--g-surface-2);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  color: var(--g-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 10px 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  outline: none;
 }
 
-.search-filter-section {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-}
+.ld-list { display: flex; flex-direction: column; gap: 12px; }
 
-.search-filter-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
+.ld-card {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius);
+  padding: 16px;
 }
-
-.custom-searchbar {
-    --background: #f1f1f1;
-    --placeholder-color: #555;
-    --color: #333;
-    width: 100%;
-    border-radius: 5px;
+.ld-card__head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 12px;
 }
-
-.custom-select {
-    margin-top: 10px;
-    width: 100%;
-    border-radius: 5px;
+.ld-card__name {
+  font-weight: 600; font-size: 16px; color: var(--g-text);
 }
-
-.control-section {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
+.ld-card__type {
+  font-size: 12px; color: var(--g-text-3);
+  margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em;
 }
-
-.button-center {
-    display: flex;
-    justify-content: center; /* Centre le bouton */
+.ld-card__body {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 14px;
 }
-
-.custom-button {
-    --background: #028418;
-    --color: #fff;
-    margin-right: 10px;
-    font-size: 12px; /* Taille du texte réduite */
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.ld-card__row {
+  display: flex; justify-content: space-between;
 }
+.ld-card__key   { font-size: 12px; color: var(--g-text-3); }
+.ld-card__val   { font-size: 13px; font-weight: 600; color: var(--g-text); }
+.ld-card__actions { display: flex; gap: 8px; }
+.ld-btn { flex: 1; padding: 9px; font-size: 12px; }
 
-.custom-button:hover {
-    --background: #4caf50;
-    --color: white;
+/* Rooms pills */
+.ld-rooms {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 12px;
 }
-
-.compartiment-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.compartiment-col {
-    display: flex;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.compartiment-card {
-    width: 100%;
-    max-width: 350px;
-    border: 2px solid #028418; /* Bordure verte */
-    border-radius: 10px;
-}
-
-.compartiment-name {
-    font-size: 1.2em;
-    font-weight: bold;
-    text-align: center;
-}
-
-.compartiment-type {
-    font-size: 0.9em;
-    color: #888;
-    text-align: center; /* Centre le type */
-    margin-bottom: 10px; /* Ajout d'un espacement sous le type */
+.ld-room-pill {
+  background: var(--g-surface-2);
+  border: 1px solid var(--g-border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px; color: var(--g-text-2);
 }

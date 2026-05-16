@@ -1,200 +1,161 @@
 import React, { useState, useEffect } from 'react';
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButton,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonCard,
-  IonCardHeader,
-  IonCardContent,
-  IonSearchbar,
-  IonSelect,
-  IonSelectOption,
-  IonIcon,
+  IonPage, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonSearchbar,
 } from '@ionic/react';
-import { addOutline, trashOutline, createOutline, informationCircleOutline } from 'ionicons/icons';
 import { useHistory, useParams } from 'react-router-dom';
-import axiosInstance from './../api/axiosConfig'; // Importation de votre fichier Axios
+import axiosInstance from './../api/axiosConfig';
 import './../assets/css/LogementDetails.css';
 
 interface Compartiment {
-  id: number;
-  type: string; // Pas de types fixes pour correspondre aux données
-  nom: string;
-  statut: string;
-  occupant: string | null;
-  logement: number; // Correspondance correcte avec la clé logement
+  id: number; type: string; nom: string;
+  statut: string; occupant: string | null; logement: number;
+  chambres: number; salons: number; douches: number; cuisines: number;
 }
-
 interface Logement {
-  id: number;
-  nom: string;
-  localisation: string;
-  description: string;
-  images: string[];
+  id: number; nom: string; localisation: string; description: string;
 }
 
 const LogementDetailsPage: React.FC = () => {
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<string>('Tous');
+  const [search, setSearch]           = useState('');
+  const [filter, setFilter]           = useState('Tous');
   const [compartiments, setCompartiments] = useState<Compartiment[]>([]);
-  const [logement, setLogement] = useState<Logement | null>(null);
+  const [logement, setLogement]       = useState<Logement | null>(null);
+  const [loading, setLoading]         = useState(true);
   const history = useHistory();
-  const { id } = useParams<{ id: string }>();
+  const { id }  = useParams<{ id: string }>();
 
   useEffect(() => {
-    const fetchLogementDetails = async () => {
-      try {
-        const response = await axiosInstance.get(`/logements/${id}`);
-        setLogement(response.data);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des détails du logement:', error);
-      }
-    };
-
-    const fetchCompartiments = async () => {
-      try {
-        const response = await axiosInstance.get(`/logements/${id}/compartiments/`);
-        setCompartiments(response.data);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des compartiments:', error);
-      }
-    };
-
-    if (id) {
-      fetchLogementDetails();
-      fetchCompartiments();
-    }
+    if (!id) return;
+    Promise.all([
+      axiosInstance.get(`logements/${id}/`),
+      axiosInstance.get(`logements/${id}/compartiments/`),
+    ]).then(([lRes, cRes]) => {
+      setLogement(lRes.data);
+      setCompartiments(cRes.data);
+    }).catch(console.error)
+      .finally(() => setLoading(false));
   }, [id]);
 
-  const filteredCompartiments = compartiments.filter((compartiment) => {
-    const logementCorrespondance = compartiment.logement === parseInt(id); // Vérifie la correspondance
-    const typeCorrespondance = filter === 'Tous' || compartiment.type.toLowerCase() === filter.toLowerCase();
-    const nomCorrespondance = compartiment.nom.toLowerCase().includes(search.toLowerCase());
-    return logementCorrespondance && typeCorrespondance && nomCorrespondance;
+  const filtered = compartiments.filter(c => {
+    const typeOk = filter === 'Tous' || c.type === filter;
+    const nameOk = c.nom.toLowerCase().includes(search.toLowerCase());
+    return typeOk && nameOk;
   });
 
-  const handleAddCompartiment = () => {
-    history.push(`/logement/${id}/ajouter-compartiment`);
+  const handleDelete = async (cid: number) => {
+    if (!window.confirm('Supprimer ce compartiment ?')) return;
+    await axiosInstance.delete(`compartiments/${cid}/`);
+    setCompartiments(prev => prev.filter(c => c.id !== cid));
   };
-
-  const handleDetailsClick = (id: number) => {
-    history.push(`/compartiment/${id}`);
-  };
-
-  const handleEditCompartiment = (compartiment: Compartiment) => {
-    history.push({
-      pathname: '/ajouter-compartiment',
-      state: { compartiment },
-    });
-  };
-
-  const handleDeleteCompartiment = async (id: number) => {
-    try {
-      await axiosInstance.delete(`/compartiments/${id}`);
-      setCompartiments(compartiments.filter((comp) => comp.id !== id));
-    } catch (error) {
-      console.error('Erreur lors de la suppression du compartiment:', error);
-    }
-  };
-
-  if (!logement) {
-    return <p>Chargement...</p>;
-  }
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Détails du Logement</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
+            Détails
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="logement-details-content">
-        <IonGrid>
-          <IonRow className="logement-details-row">
-            <IonCol size="12">
-              <IonCard>
-                <IonCardHeader>
-                  <IonTitle>{logement.nom}</IonTitle>
-                </IonCardHeader>
-                <IonCardContent>
-                  <p><strong>Localisation:</strong> {logement.localisation}</p>
-                  <p>{logement.description}</p>
-                </IonCardContent>
-              </IonCard>
-            </IonCol>
-          </IonRow>
+        <div className="g-page">
 
-          <IonRow className="search-filter-section">
-            <IonCol size="12" className="search-filter-col">
-              <IonSearchbar
-                value={search}
-                onIonInput={(e) => setSearch(e.detail.value!)}
-                placeholder="Rechercher un compartiment..."
-                className="custom-searchbar"
-              />
-              <IonSelect
-                value={filter}
-                placeholder="Filtrer par type"
-                onIonChange={(e) => setFilter(e.detail.value)}
-                className="custom-select"
-              >
-                <IonSelectOption value="Tous">Tous les types</IonSelectOption>
-                <IonSelectOption value="Appartement">Appartement</IonSelectOption>
-                <IonSelectOption value="Studio">Studio</IonSelectOption>
-                <IonSelectOption value="Chambre">Chambre</IonSelectOption>
-                <IonSelectOption value="Boutique">Boutique</IonSelectOption>
-              </IonSelect>
-            </IonCol>
-          </IonRow>
+          {/* Logement info */}
+          {logement && (
+            <div className="ld-header g-animate">
+              <p className="ld-header__name">{logement.nom}</p>
+              <p className="ld-header__loc">📍 {logement.localisation}</p>
+              {logement.description && (
+                <p className="ld-header__desc">{logement.description}</p>
+              )}
+            </div>
+          )}
 
-          <IonRow className="control-section">
-            <IonCol size="12" className="button-center">
-              <IonButton onClick={handleAddCompartiment} className="custom-button">
-                <IonIcon icon={addOutline} />
-                Ajouter Compartiment
-              </IonButton>
-            </IonCol>
-          </IonRow>
+          {/* Controls */}
+          <div className="ld-controls g-animate g-animate--1">
+            <IonSearchbar
+              value={search}
+              onIonInput={e => setSearch(e.detail.value!)}
+              placeholder="Rechercher…"
+            />
+            <button
+              className="ld-add-btn"
+              onClick={() => history.push(`/logement/${id}/ajouter-compartiment`)}
+            >
+              + Ajouter
+            </button>
+          </div>
 
-          <IonRow className="compartiment-list">
-            {filteredCompartiments.length > 0 ? (
-              filteredCompartiments.map((compartiment) => (
-                <IonCol key={compartiment.id} size="12" size-md="6" size-lg="4" className="compartiment-col">
-                  <IonCard className="compartiment-card">
-                    <IonCardHeader>
-                      <IonTitle className="compartiment-name">{compartiment.nom}</IonTitle>
-                    </IonCardHeader>
-                    <IonCardContent>
-                      <p className="compartiment-type">{compartiment.type}</p>
-                      <p><strong>Statut:</strong> {compartiment.statut}</p>
-                      <p><strong>Occupant:</strong> {compartiment.occupant || 'Non assigné'}</p>
-                      <IonButton size="small" className="custom-button" onClick={() => handleDetailsClick(compartiment.id)}>
-                        <IonIcon icon={informationCircleOutline} /> Détails
-                      </IonButton>
-                      <IonButton size="small" color="dark" className="custom-button" onClick={() => handleEditCompartiment(compartiment)}>
-                        <IonIcon icon={createOutline} /> Modifier
-                      </IonButton>
-                      <IonButton size="small" color="danger" className="custom-button" onClick={() => handleDeleteCompartiment(compartiment.id)}>
-                        <IonIcon icon={trashOutline} /> Supprimer
-                      </IonButton>
-                    </IonCardContent>
-                  </IonCard>
-                </IonCol>
-              ))
-            ) : (
-              <IonCol size="12">
-                <p>Aucun compartiment trouvé</p>
-              </IonCol>
-            )}
-          </IonRow>
-        </IonGrid>
+          <select
+            className="ld-filter g-animate g-animate--1"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          >
+            <option value="Tous">Tous les types</option>
+            <option value="APPARTEMENT">Appartement</option>
+            <option value="STUDIO">Studio</option>
+            <option value="CHAMBRE">Chambre</option>
+            <option value="BOUTIQUE">Boutique</option>
+          </select>
+
+          {loading ? (
+            <div className="logement-loading">
+              <div className="logement-spinner" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="g-empty g-animate">
+              <div className="g-empty__icon">🏘️</div>
+              <p className="g-empty__text">Aucun compartiment trouvé</p>
+            </div>
+          ) : (
+            <div className="ld-list">
+              {filtered.map((c, i) => (
+                <div key={c.id} className={`ld-card g-animate g-animate--${Math.min(i+1,5)}`}>
+                  <div className="ld-card__head">
+                    <div>
+                      <p className="ld-card__name">{c.nom}</p>
+                      <p className="ld-card__type">{c.type}</p>
+                    </div>
+                    <span className={`g-badge ${c.statut === 'LIBRE' ? 'g-badge--green' : 'g-badge--gold'}`}>
+                      {c.statut === 'LIBRE' ? 'Libre' : 'Occupé'}
+                    </span>
+                  </div>
+
+                  <div className="ld-rooms">
+                    {c.chambres > 0 && <span className="ld-room-pill">🛏 {c.chambres} chambre{c.chambres > 1 ? 's' : ''}</span>}
+                    {c.salons   > 0 && <span className="ld-room-pill">🛋 {c.salons} salon{c.salons > 1 ? 's' : ''}</span>}
+                    {c.douches  > 0 && <span className="ld-room-pill">🚿 {c.douches} douche{c.douches > 1 ? 's' : ''}</span>}
+                    {c.cuisines > 0 && <span className="ld-room-pill">🍳 {c.cuisines} cuisine{c.cuisines > 1 ? 's' : ''}</span>}
+                  </div>
+
+                  <div className="ld-card__body">
+                    <div className="ld-card__row">
+                      <span className="ld-card__key">Occupant</span>
+                      <span className="ld-card__val">{c.occupant || '—'}</span>
+                    </div>
+                  </div>
+
+                  <div className="ld-card__actions">
+                    <button
+                      className="g-btn g-btn--outline ld-btn"
+                      onClick={() => history.push(`/compartiment/${c.id}`)}
+                    >
+                      Détails
+                    </button>
+                    <button
+                      className="g-btn g-btn--danger ld-btn"
+                      onClick={() => handleDelete(c.id)}
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </IonContent>
     </IonPage>
   );

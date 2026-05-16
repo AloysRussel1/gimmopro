@@ -1,30 +1,37 @@
-import React, { useState } from 'react';
-import './../assets/css/Navbar.css';
-import { FaHome, FaUser, FaClipboardList, FaMoneyBillWave, FaBars, FaTimes } from 'react-icons/fa';
-import logo from './../assets/images/gimmopro_logo.png'; // Mettez le chemin vers votre logo ici
+import React from 'react';
+import { useLocation, useHistory } from 'react-router-dom';
+import '../assets/css/Navbar.css';
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false); // État pour gérer l'ouverture du menu
+const tabs = [
+  { path: '/logement', icon: '🏠', label: 'Logements' },
+  { path: '/locataire', icon: '👤', label: 'Locataires' },
+  { path: '/paiement', icon: '💳', label: 'Paiements' },
+  { path: '/dashboard', icon: '📊', label: 'Dashboard' },
+];
 
-  const toggleMenu = () => {
-    setIsOpen(prevState => !prevState); // Inverse l'état d'ouverture
-  };
+const Navbar: React.FC = () => {
+  const location = useLocation();
+  const history = useHistory();
+
+  // Hide on login page
+  if (location.pathname === '/login') return null;
 
   return (
-    <nav className="navbar">
-      <div className="logo-container">
-        <img src={logo} alt="Logo" className="logo-image" />
-        <span className="logo">Gimmopro</span>
-      </div>
-      <button className="menu-toggle" onClick={toggleMenu}>
-        {isOpen ? <FaTimes /> : <FaBars />} {/* Affiche une croix ou un menu burger selon l'état */}
-      </button>
-      <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
-        <li><a href="/logement" onClick={toggleMenu}><FaClipboardList /> Logements</a></li>
-        <li><a href="/locataire" onClick={toggleMenu}><FaUser /> Locataires</a></li>
-        <li><a href="/paiement" onClick={toggleMenu}><FaMoneyBillWave /> Paiements</a></li>
-        <li><a href="/dashboard" onClick={toggleMenu}><FaHome /> Dashboard</a></li>
-      </ul>
+    <nav className="g-tabbar">
+      {tabs.map(tab => {
+        const active = location.pathname.startsWith(tab.path);
+        return (
+          <button
+            key={tab.path}
+            className={`g-tab ${active ? 'g-tab--active' : ''}`}
+            onClick={() => history.push(tab.path)}
+          >
+            <span className="g-tab__icon">{tab.icon}</span>
+            <span className="g-tab__label">{tab.label}</span>
+            {active && <span className="g-tab__dot" />}
+          </button>
+        );
+      })}
     </nav>
   );
 };

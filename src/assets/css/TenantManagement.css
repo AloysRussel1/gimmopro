@@ -1,141 +1,86 @@
-/* Styles de la barre d'outils */
-.tenant-management{
-    position: relative;
-    top : 40px;
+@import './theme.css';
+
+.tenant-content { --background: var(--g-bg); }
+.tenant-title { font-family: var(--font-display); font-size: 20px; }
+
+.tenant-top {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px;
 }
-
-.custom-toolbar {
-    --background: black; /* Couleur noire pour la barre d'outils */
-    --color: white; /* Texte blanc */
-    height: 70px; /* Augmenter la hauteur pour rendre plus visible */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.tenant-search { flex: 1; }
+.tenant-add-btn {
+  background: var(--g-gold);
+  color: #0A0A0F;
+  border: none;
+  border-radius: var(--g-radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 700;
+  white-space: nowrap; cursor: pointer;
+  transition: background 0.18s;
 }
+.tenant-add-btn:active { background: var(--g-gold-light); }
 
-/* Conteneur des actions (recherche, filtre, ajout) */
-.header-actions {
-    display: flex;
-    flex-direction: column; /* Aligner verticalement sur mobile */
-    margin-bottom: 20px;
-}
+.tenant-list { display: flex; flex-direction: column; gap: 14px; }
 
-.header-actions > * {
-    margin-bottom: 10px; /* Espacement entre les éléments */
-}
-
-/* Barre de recherche */
-.ion-searchbar {
-    width: 100%; /* Prendre toute la largeur */
-}
-
-/* Sélecteur de filtre */
-.ion-select {
-    width: 100%; /* Prendre toute la largeur */
-}
-
-ion-input,
-ion-select {
-  --background: #f0f0f0;
-  border-radius: 5px;
-  padding: 8px;
-}
-
-ion-button {
-  width: 100%;
-  padding: 10px 0;
-}
-
-/* Bouton Ajouter un locataire */
-.add-button {
-    --background: green; /* Vert pour symboliser l'ajout */
-    --color: white;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 8px;
-}
-
-/* Media query pour le layout responsive */
-@media (min-width: 768px) {
-    .header-actions {
-        flex-direction: row; /* Aligner horizontalement sur les écrans plus larges */
-        justify-content: space-between; /* Espacement entre les éléments */
-    }
-
-    .ion-searchbar, .ion-select {
-        width: auto; /* Largeur auto pour desktop */
-        margin-right: 10px; /* Espacement entre les éléments */
-    }
-}
-
-/* Carte des locataires */
 .tenant-card {
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    background-color: white; /* Fond blanc pour la carte */
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius);
+  padding: 18px;
 }
 
-/* Sous-titre de la carte (logement) */
-.tenant-card ion-card-subtitle {
-    font-size: 1rem;
-    color: black; /* Couleur noire pour le sous-titre */
+.tenant-card__head {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
 }
-
-/* Titre de la carte (nom du locataire) */
-.tenant-card ion-card-title {
-    font-size: 1.5rem;
-    color: green; /* Vert pour rester cohérent avec le thème */
-    font-weight: bold;
+.tenant-avatar {
+  width: 44px; height: 44px;
+  background: var(--g-gold-dim);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--g-gold);
+  flex-shrink: 0;
 }
-
-/* Statut des locataires */
-.status {
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 12px;
+.tenant-card__info { flex: 1; min-width: 0; }
+.tenant-card__name {
+  font-weight: 600; font-size: 16px;
+  color: var(--g-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.tenant-card__phone { font-size: 13px; color: var(--g-text-2); margin-top: 2px; }
 
-.status.actif {
-    background-color: green; /* Vert pour locataire actif */
-    color: white;
+.tenant-card__details {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 16px;
 }
-
-.status.en-retard-de-paiement {
-    background-color: black; /* Noir pour retard de paiement */
-    color: white;
+.tenant-detail {
+  display: flex; justify-content: space-between; align-items: center;
 }
-
-/* Boutons dans la carte */
-.actions {
-    display: flex;
-    justify-content: flex-start;
-    gap: 10px;
-    margin-top: 10px;
+.tenant-detail__label {
+  font-size: 12px; color: var(--g-text-3);
+  font-weight: 500; letter-spacing: 0.04em;
 }
+.tenant-detail__value { font-size: 13px; font-weight: 600; color: var(--g-text); }
+.tenant-detail__value--gold { color: var(--g-gold); }
+.tenant-detail__value--red  { color: var(--g-danger); }
 
-.actions ion-button {
-    --padding-start: 10px;
-    --padding-end: 10px;
-    --background: green; /* Vert pour un bouton d'action standard */
-    --color: white;
+.tenant-card__actions { display: flex; gap: 10px; }
+.tenant-btn { flex: 1; padding: 10px; font-size: 13px; }
+
+/* Reuse spinner from Dashboard */
+.dash-loading {
+  display: flex; flex-direction: column;
+  align-items: center; padding: 60px 0; gap: 16px; color: var(--g-text-2);
 }
-
-.actions .modify-button {
-    --background: green; /* Vert pour modifier */
+.dash-spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--g-border);
+  border-top-color: var(--g-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-
-.actions .delete-button {
-    --background: black; /* Noir pour supprimer */
-}
-
-.tenant-info, .tenant-contract, .tenant-status {
-    margin-bottom: 15px;
-  }
-  
-  h3 {
-    margin-bottom: 5px;
-    color: #333;
-  }
-  
+@keyframes spin { to { transform: rotate(360deg); } }

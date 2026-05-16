@@ -1,131 +1,106 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import axiosInstance from './../api/axiosConfig'; 
+import axiosInstance from './../api/axiosConfig';
 import {
-  IonButton,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonSearchbar,
-  IonTitle,
-  IonToolbar,
-  IonGrid,
-  IonRow,
-  IonCol,
+  IonContent, IonHeader, IonPage,
+  IonSearchbar, IonTitle, IonToolbar,
 } from '@ionic/react';
-import './../assets/css/LogementPage.css'; // Fichier de style spécifique
+import './../assets/css/LogementPage.css';
 
 interface Logement {
   id: number;
   nom: string;
   localisation: string;
   description: string;
-  imageUrl: string;
 }
 
 const LogementPage: React.FC = () => {
-  const [logements, setLogements] = useState<Logement[]>([]);
+  const [logements, setLogements]   = useState<Logement[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Hook pour l'historique de navigation
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
   const history = useHistory();
 
   useEffect(() => {
-    const fetchLogements = async () => {
-      setLoading(true);
-      setError(null); // Réinitialiser les erreurs avant de tenter une nouvelle requête
-
-      try {
-        const response = await axiosInstance.get('/logements_list'); // Utilisation de votre configuration axios
-
-        // On suppose que la réponse est bien au format JSON et on l'assigne
-        setLogements(response.data);
-      } catch (err) {
-        console.error('Erreur lors du chargement des logements:', err);
-        setError('Erreur lors du chargement des logements. Veuillez réessayer plus tard.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLogements();
+    axiosInstance.get('logements/')
+      .then(r => setLogements(r.data))
+      .catch(() => setError('Impossible de charger les logements.'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleAddLogement = () => {
-    history.push('/ajouter-logement');
-  };
-
-  const handleSearchChange = (event: CustomEvent) => {
-    setSearchTerm(event.detail.value || '');
-  };
-
-  const filteredLogements = logements.filter(logement =>
-    logement.nom.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = logements.filter(l =>
+    l.nom.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Fonction pour naviguer vers la page de détails
-  const handleViewDetails = (logementId: number) => {
-    history.push(`/logement/${logementId}`);
-  };
 
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar className="custom-toolbar">
-          <IonTitle>Gestion des Logements</IonTitle>
+        <IonToolbar>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
+            Logements
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
+
       <IonContent className="custom-content">
-        <IonSearchbar
-          placeholder="Rechercher un logement..."
-          value={searchTerm}
-          onIonInput={handleSearchChange}
-          className="custom-searchbar"
-        />
-        <IonButton expand="full" onClick={handleAddLogement} className="add-logement-btn">
-          Ajouter un Logement
-        </IonButton>
+        <div className="logement-page">
 
-        {loading && <p>Chargement en cours...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+          <div className="logement-page__top g-animate">
+            <IonSearchbar
+              placeholder="Rechercher…"
+              value={searchTerm}
+              onIonInput={e => setSearchTerm(e.detail.value || '')}
+              className="logement-page__search"
+            />
+            <button
+              className="logement-page__add"
+              onClick={() => history.push('/ajouter-logement')}
+            >
+              + Ajouter
+            </button>
+          </div>
 
-        <IonGrid>
-          <IonRow>
-            {filteredLogements.map(logement => (
-              <IonCol
-                sizeXs="12"
-                sizeSm="6"
-                sizeMd="4"
-                key={logement.id}
-                className="logement-col"
-              >
-                <IonCard className="logement-card">
-                  <IonCardHeader className="logement-header">
-                    <IonCardTitle className="logement-title">{logement.nom}</IonCardTitle>
-                  </IonCardHeader>
-                  <IonCardContent className="logement-content">
-                    <p><strong>Localisation:</strong> {logement.localisation}</p>
-                    <p>{logement.description}</p>
-                    {/* Utilisation de la fonction pour naviguer */}
-                    <IonButton
-                      expand="full"
-                      className="voir-plus-btn"
-                      onClick={() => handleViewDetails(logement.id)}
+          {loading ? (
+            <div className="logement-loading">
+              <div className="logement-spinner" />
+              <p>Chargement…</p>
+            </div>
+          ) : error ? (
+            <div className="g-empty g-animate">
+              <div className="g-empty__icon">⚠️</div>
+              <p className="g-empty__text">{error}</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="g-empty g-animate">
+              <div className="g-empty__icon">🏠</div>
+              <p className="g-empty__text">Aucun logement trouvé</p>
+            </div>
+          ) : (
+            <div className="logement-list">
+              {filtered.map((l, i) => (
+                <div
+                  key={l.id}
+                  className={`logement-card g-animate g-animate--${Math.min(i + 1, 5)}`}
+                >
+                  <div className="logement-header">
+                    <p className="logement-title">{l.nom}</p>
+                  </div>
+                  <div className="logement-content">
+                    <p><strong>Localisation</strong><br />{l.localisation}</p>
+                    {l.description && <p style={{ marginTop: '8px' }}>{l.description}</p>}
+                    <button
+                      className="g-btn g-btn--primary"
+                      style={{ marginTop: '14px' }}
+                      onClick={() => history.push(`/logement/${l.id}`)}
                     >
-                      Voir Plus
-                    </IonButton>
-                  </IonCardContent>
-                </IonCard>
-              </IonCol>
-            ))}
-          </IonRow>
-        </IonGrid>
+                      Voir les compartiments →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </IonContent>
     </IonPage>
   );

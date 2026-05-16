@@ -1,114 +1,118 @@
-/* Fond général clair avec padding pour espacer le contenu du haut de la page */
+@import './theme.css';
+
 .custom-content {
-    position: relative;
-    top: 40px;
-    background-color: #f4f4f4; /* Fond gris clair pour le contenu général */
-    padding-top: 100px;
-    padding-left: 20px;
-    padding-right: 20px;
-    min-height: 100vh; /* Pour couvrir toute la hauteur de la page */
+  --background: var(--g-bg);
+  background: var(--g-bg);
 }
 
-/* Barre de recherche stylisée */
-.custom-searchbar {
-    --background: #ffffff; /* Fond blanc pour la barre de recherche */
-    --color: #000; /* Texte noir */
-    --ion-color-primary: #28a745; /* Couleur verte pour les éléments actifs */
-    margin-bottom: 15px;
-    border-radius: 8px; /* Bords arrondis pour une apparence douce */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour l'effet 3D */
+.logement-page {
+  padding: 20px 16px 32px;
 }
 
-/* Bouton "Ajouter un logement" stylisé */
-.add-logement-btn {
-    --background: #28a745; /* Vert vif pour le bouton Ajouter */
-    --color: #ffffff; /* Texte blanc */
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Ombre pour donner un effet flottant */
-    transition: background-color 0.3s ease;
-    border: none; /* Pas de bordure */
-    padding: 10px 15px; /* Espacement intérieur */
-    cursor: pointer; /* Curseur en main */
+.logement-page__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.add-logement-btn:hover {
-    --background: #1e7c34; /* Assombrir le vert au survol */
+.logement-page__search {
+  flex: 1;
 }
 
-/* Style des cartes de logements */
+.logement-page__add {
+  background: var(--g-gold);
+  color: #0A0A0F;
+  border: none;
+  border-radius: var(--g-radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.logement-page__add:active { background: var(--g-gold-light); }
+
+.logement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .logement-card {
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Légère ombre pour l'effet 3D */
-    border-radius: 12px; /* Coins arrondis */
-    background-color: #ffffff; /* Fond blanc pour les cartes */
-    transition: transform 0.3s ease-in-out;
-    padding: 15px; /* Padding à l'intérieur des cartes */
-    margin-bottom: 20px; /* Espacement entre les cartes */
+  background: var(--g-surface) !important;
+  border: 1px solid var(--g-border) !important;
+  border-radius: var(--g-radius) !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transition: border-color 0.2s !important;
+}
+.logement-card:active {
+  border-color: var(--g-border-bright) !important;
 }
 
-.logement-card:hover {
-    transform: scale(1.05); /* Zoom sur survol */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Intensification de l'ombre */
-}
-
-/* Image responsive avec ajustement */
-.logement-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover; /* Pour ajuster l'image à l'espace disponible */
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-}
-
-/* Header de la carte */
 .logement-header {
-    background-color: #28a745; /* Fond vert pour le titre */
-    color: white;
-    text-align: center;
-    font-size: large;
-    font-weight: 900;
-    padding: 10px;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    margin-bottom: 30px;
+  background: transparent !important;
+  border-bottom: 1px solid var(--g-border);
+  padding: 16px 18px 14px !important;
 }
 
-/* Contenu de la carte */
-.logement-content {
-    padding: 15px;
-    background-color: #f9f9f9; /* Fond légèrement gris pour contraste avec la carte */
-    color: #333; /* Texte légèrement plus sombre pour meilleure lisibilité */
-    font-size:large;
-}
-
-/* Style du titre du logement */
 .logement-title {
-    font-size: 1.2em; /* Taille de police réduite */
-    font-weight: normal; /* Moins gras */
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--g-text) !important;
 }
 
-/* Bouton Voir Plus */
+.logement-content {
+  background: transparent !important;
+  padding: 14px 18px 18px !important;
+  color: var(--g-text-2) !important;
+  font-size: 13px !important;
+}
+
+.logement-content p {
+  color: var(--g-text-2);
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.logement-content strong {
+  color: var(--g-text-3);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .voir-plus-btn {
-    --background: #28a745; /* Vert vif pour le bouton Ajouter */
-    --color: #ffffff; /* Texte blanc */
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Ombre pour donner un effet flottant */
-    transition: background-color 0.3s ease;
-    border: none; /* Pas de bordure */
-    padding: 10px 15px; /* Espacement intérieur */
-    cursor: pointer; /* Curseur en main */
+  --background: var(--g-gold) !important;
+  --color: #0A0A0F !important;
+  --border-radius: 10px !important;
+  --box-shadow: none !important;
+  margin-top: 10px !important;
+  font-weight: 700 !important;
 }
 
-.voir-plus-btn:hover {
-    --background: #1e7c34; /* Assombrir le vert au survol */
+.logement-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 0;
+  gap: 16px;
+  color: var(--g-text-2);
 }
 
-/* Disposition responsive pour les colonnes */
-.logement-col {
-    display: flex;
-    justify-content: center; /* Centrer les cartes dans la colonne */
-    align-items: center; /* Centrer verticalement */
-    margin-bottom: 15px; /* Espacement en bas des colonnes */
+.logement-spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--g-border);
+  border-top-color: var(--g-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

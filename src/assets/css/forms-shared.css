@@ -1,0 +1,129 @@
+/* ═══════════════════════════════════════
+   FORMS — AddLogement / AddTenant / AddCompartiment
+   Shared luxury dark styles
+═══════════════════════════════════════ */
+@import './theme.css';
+
+/* Override Ionic page background */
+ion-content.form-content { --background: var(--g-bg); }
+
+.form-wrap {
+  padding: 20px 16px 40px;
+}
+
+/* Progress bar */
+.form-progress {
+  height: 4px;
+  background: var(--g-surface-2);
+  border-radius: 100px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.form-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--g-gold) 0%, var(--g-gold-light) 100%);
+  border-radius: 100px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Step indicator */
+.form-step {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--g-gold); margin-bottom: 8px;
+}
+.form-title {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 600;
+  color: var(--g-text); margin-bottom: 28px;
+}
+
+/* Ion overrides for dark theme */
+ion-item {
+  --background: var(--g-surface-2) !important;
+  --border-color: var(--g-border) !important;
+  --color: var(--g-text) !important;
+  --highlight-color-focused: var(--g-gold) !important;
+  border-radius: var(--g-radius-sm) !important;
+  margin-bottom: 12px !important;
+}
+
+ion-label {
+  --color: var(--g-text-3) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+ion-input {
+  --color: var(--g-text) !important;
+  --placeholder-color: var(--g-text-3) !important;
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+}
+
+ion-textarea {
+  --color: var(--g-text) !important;
+  --placeholder-color: var(--g-text-3) !important;
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+}
+
+ion-datetime {
+  --background: var(--g-surface-2) !important;
+  --color: var(--g-text) !important;
+}
+
+ion-progress-bar {
+  --background: var(--g-surface-2) !important;
+  --progress-background: var(--g-gold) !important;
+  height: 4px !important;
+  border-radius: 100px !important;
+  margin-bottom: 28px !important;
+}
+
+/* Buttons */
+.btn {
+  --background: var(--g-gold) !important;
+  --color: #0A0A0F !important;
+  --border-radius: 10px !important;
+  --box-shadow: none !important;
+  font-weight: 700 !important;
+  font-family: var(--font-body) !important;
+}
+
+/* Confirmation section */
+.confirmation-section {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.confirmation-section h3 {
+  font-family: var(--font-display);
+  font-size: 18px; color: var(--g-text);
+  margin-bottom: 16px;
+}
+.confirmation-section p {
+  display: flex; justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--g-border);
+  font-size: 13px; color: var(--g-text-2);
+}
+.confirmation-section p:last-child { border-bottom: none; }
+.confirmation-section strong {
+  color: var(--g-text-3);
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* h2 global override for forms */
+.form-classic h2 {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600;
+  color: var(--g-text);
+  margin-bottom: 24px;
+  text-align: left;
+}

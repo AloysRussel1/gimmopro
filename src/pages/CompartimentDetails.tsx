@@ -1,115 +1,116 @@
 import React, { useEffect, useState } from 'react';
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonButton,
-  IonIcon,
-} from '@ionic/react';
-import { trashOutline, createOutline } from 'ionicons/icons';
-import { useParams } from 'react-router-dom';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
+import { useParams, useHistory } from 'react-router-dom';
 import axiosInstance from './../api/axiosConfig';
 import './../assets/css/CompartimentDetails.css';
 
 interface Compartiment {
-  id: number;
-  type: string;
-  nom: string;
-  statut: string;
-  occupant: string | null;
-  loyer?: number;
-  datePremiereOccupation?: string;
-  chambres: number;
-  salons: number;
-  douches: number;
-  cuisines: number;
+  id: number; type: string; nom: string; statut: string;
+  occupant: string | null; loyer?: number;
+  chambres: number; salons: number; douches: number; cuisines: number;
 }
 
 const CompartimentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [compartimentDetails, setCompartimentDetails] = useState<Compartiment | null>(null);
+  const history = useHistory();
+  const [c, setC]           = useState<Compartiment | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCompartiment = async () => {
-      try {
-        const response = await axiosInstance.get(`/compartiments/${id}/`);
-        console.log('Response data:', response.data); // Debug: Afficher les données retournées
-        setCompartimentDetails(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Erreur API :", err);
-        setError("Impossible de charger les détails du compartiment.");
-        setLoading(false);
-      }
-    };
-
-    fetchCompartiment();
+    axiosInstance.get(`compartiments/${id}/`)
+      .then(r => setC(r.data))
+      .catch(() => setError('Impossible de charger ce compartiment.'))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) {
-    return <p>Chargement...</p>;
-  }
-
-  if (error) {
-    return <p className="error">{error}</p>;
-  }
-
-  if (!compartimentDetails) {
-    return <p>Aucun détail disponible pour ce compartiment.</p>;
-  }
+  const handleDelete = async () => {
+    if (!window.confirm('Supprimer ce compartiment ?')) return;
+    await axiosInstance.delete(`compartiments/${id}/`);
+    history.goBack();
+  };
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Détails du Compartiment</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
+            Compartiment
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
+
       <IonContent className="compartiment-details-content">
-        <IonGrid>
-          <IonRow className="header-section">
-            <IonCol size="12" className="compartiment-header">
-              <h2>{compartimentDetails.nom}</h2>
-              <p><strong>Type:</strong> {compartimentDetails.type}</p>
-              <p><strong>Statut:</strong> {compartimentDetails.statut}</p>
-              <p><strong>Occupant:</strong> {compartimentDetails.occupant ? compartimentDetails.occupant : "Aucun occupant"}</p>
-              {compartimentDetails.statut === 'OCCUPE' && compartimentDetails.loyer && (
-                <p><strong>Loyer:</strong> {compartimentDetails.loyer} € par mois</p>
-              )}
-              {compartimentDetails.datePremiereOccupation && (
-                <p><strong>Date de première occupation:</strong> {compartimentDetails.datePremiereOccupation}</p>
-              )}
-            </IonCol>
-          </IonRow>
-          <IonRow className="details-section">
-            <IonCol size="12">
-              <h3>Détails</h3>
-              <p><strong>Nombre de chambres:</strong> {compartimentDetails.chambres}</p>
-              <p><strong>Nombre de salons:</strong> {compartimentDetails.salons}</p>
-              <p><strong>Nombre de douches:</strong> {compartimentDetails.douches}</p>
-              <p><strong>Nombre de cuisines:</strong> {compartimentDetails.cuisines}</p>
-            </IonCol>
-          </IonRow>
-          <IonRow className="action-buttons">
-            <IonCol size="6">
-              <IonButton className="btn-modifier" expand="full">
-                <IonIcon icon={createOutline} /> Modifier
-              </IonButton>
-            </IonCol>
-            <IonCol size="6">
-              <IonButton className="btn-supprimer" expand="full">
-                <IonIcon icon={trashOutline} /> Supprimer
-              </IonButton>
-            </IonCol>
-          </IonRow>
-        </IonGrid>
+        <div className="g-page">
+          {loading ? (
+            <div className="logement-loading">
+              <div className="logement-spinner" />
+            </div>
+          ) : error ? (
+            <div className="g-empty"><p className="g-empty__text">{error}</p></div>
+          ) : c ? (
+            <>
+              {/* Hero */}
+              <div className="cd-hero g-animate">
+                <p className="cd-hero__name">{c.nom}</p>
+                <div className="cd-hero__badges">
+                  <span className="g-badge g-badge--gold">{c.type}</span>
+                  <span className={`g-badge ${c.statut === 'LIBRE' ? 'g-badge--green' : 'g-badge--gray'}`}>
+                    {c.statut === 'LIBRE' ? 'Libre' : 'Occupé'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Détails */}
+              <div className="cd-section g-animate g-animate--1">
+                <p className="cd-section__title">Informations</p>
+                <div className="cd-row">
+                  <span className="cd-row__key">Occupant</span>
+                  <span className="cd-row__val">{c.occupant || '—'}</span>
+                </div>
+                {c.loyer && (
+                  <div className="cd-row">
+                    <span className="cd-row__key">Loyer</span>
+                    <span className="cd-row__val" style={{ color: 'var(--g-gold)' }}>
+                      {Number(c.loyer).toLocaleString('fr-CA')} $
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Pièces */}
+              <div className="cd-section g-animate g-animate--2">
+                <p className="cd-section__title">Composition</p>
+                <div className="cd-row">
+                  <span className="cd-row__key">🛏 Chambres</span>
+                  <span className="cd-row__val">{c.chambres}</span>
+                </div>
+                <div className="cd-row">
+                  <span className="cd-row__key">🛋 Salons</span>
+                  <span className="cd-row__val">{c.salons}</span>
+                </div>
+                <div className="cd-row">
+                  <span className="cd-row__key">🚿 Douches</span>
+                  <span className="cd-row__val">{c.douches}</span>
+                </div>
+                <div className="cd-row">
+                  <span className="cd-row__key">🍳 Cuisines</span>
+                  <span className="cd-row__val">{c.cuisines}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="cd-actions g-animate g-animate--3">
+                <button className="g-btn g-btn--outline cd-btn" onClick={() => history.goBack()}>
+                  ← Retour
+                </button>
+                <button className="g-btn g-btn--danger cd-btn" onClick={handleDelete}>
+                  🗑 Supprimer
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
       </IonContent>
     </IonPage>
   );

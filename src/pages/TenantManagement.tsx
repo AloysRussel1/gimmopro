@@ -1,181 +1,157 @@
-import React, { useState } from 'react';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonSearchbar, IonSelect, IonSelectOption, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent, IonIcon } from '@ionic/react';
-import { addCircle, create, trash } from 'ionicons/icons';
+import React, { useEffect, useState } from 'react';
+import {
+  IonPage, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonSearchbar,
+} from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import './../assets/css/TenantManagement.css';
+import axiosInstance from '../api/axiosConfig';
+import '../assets/css/TenantManagement.css';
 
-interface Tenant {
+interface Occupant {
   id: number;
-  name: string;
-  contact: string;
-  logement: string;
-  compartiment: string;
-  status: string;
-  startDate: string;
-  rent: number;
-  nextPaymentDate: string;
-  cniNumber: string;
-  phoneNumber: string;
-  contractNumber: string;
+  nom_complet: string;
+  telephone: string;
+  email: string;
+  cni: string;
+  numero_contrat: string;
+  date_debut_contrat: string;
+  loyer: string;
+  date_prochain_paiement: string;
+  statut: string;
+  logement: number | null;
 }
 
 const TenantManagement: React.FC = () => {
-  const [searchText, setSearchText] = useState<string>('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
-  const [filterLogement, setFilterLogement] = useState<string>(''); // Ajout du filtre de logement
-
-  const tenants: Tenant[] = [
-    {
-      id: 1,
-      name: 'Aloys M.',
-      contact: 'aloystenant@mail.com',
-      logement: 'Mon domicile 1',
-      compartiment: 'Studio 101',
-      status: 'Actif',
-      startDate: '2023-07-01',
-      rent: 500,
-      nextPaymentDate: '2024-10-01',
-      cniNumber: 'CNI123456789',
-      phoneNumber: '+237 690 123 456',
-      contractNumber: 'CONTRACT001',
-    },
-    {
-      id: 2,
-      name: 'Bénédicte P.',
-      contact: 'benedictetenant@mail.com',
-      logement: 'Mon domicile 1',
-      compartiment: 'Appartement A202',
-      status: 'En retard de paiement',
-      startDate: '2022-09-15',
-      rent: 600,
-      nextPaymentDate: '2024-10-15',
-      cniNumber: 'CNI987654321',
-      phoneNumber: '+237 691 654 321',
-      contractNumber: 'CONTRACT002',
-    },
-    {
-      id: 3,
-      name: 'Clara S.',
-      contact: 'clara@mail.com',
-      logement: 'Mon domicile 2',
-      compartiment: 'Appartement B201',
-      status: 'Actif',
-      startDate: '2023-05-12',
-      rent: 600,
-      nextPaymentDate: '2024-11-01',
-      cniNumber: 'CNI111222333',
-      phoneNumber: '+237 693 876 543',
-      contractNumber: 'CONTRACT003',
-    }
-  ];
-
-  const handleSearch = (e: CustomEvent) => {
-    setSearchText(e.detail.value);
-  };
-
-  const filteredTenants = tenants.filter(tenant =>
-    tenant.name.toLowerCase().includes(searchText.toLowerCase()) &&
-    (filterStatus === '' || tenant.status === filterStatus) &&
-    (filterLogement === '' || tenant.logement === filterLogement) // Filtrage par logement
-  );
-
-  const groupedTenants = filteredTenants.reduce((acc, tenant) => {
-    if (!acc[tenant.logement]) {
-      acc[tenant.logement] = [];
-    }
-    acc[tenant.logement].push(tenant);
-    return acc;
-  }, {} as Record<string, Tenant[]>);
-
+  const [occupants, setOccupants] = useState<Occupant[]>([]);
+  const [filtered, setFiltered] = useState<Occupant[]>([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
   const history = useHistory();
 
-  const handleAddTenant = () => {
-    history.push('/ajouter-locataire');
-  };
+  useEffect(() => {
+    axiosInstance.get('occupants/')
+      .then(r => { setOccupants(r.data); setFiltered(r.data); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleModifyTenant = (tenant: Tenant) => {
-    history.push('/ajouter-locataire', { tenant });
-  };
+  useEffect(() => {
+    const q = search.toLowerCase();
+    setFiltered(occupants.filter(o =>
+      o.nom_complet.toLowerCase().includes(q) ||
+      o.telephone.includes(q) ||
+      o.email.toLowerCase().includes(q)
+    ));
+  }, [search, occupants]);
 
-  const handleDeleteTenant = (id: number) => {
-    console.log(`Suppression du locataire avec l'ID: ${id}`);
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Supprimer ce locataire ?')) return;
+    await axiosInstance.delete(`occupants/${id}/`);
+    setOccupants(prev => prev.filter(o => o.id !== id));
   };
 
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar className="custom-toolbar">
-          <IonTitle>Gestion des Locataires</IonTitle>
+        <IonToolbar>
+          <IonTitle className="tenant-title">Locataires</IonTitle>
         </IonToolbar>
       </IonHeader>
 
-      <IonContent className="tenant-management">
-        <div className="header-actions">
-          <IonSearchbar value={searchText} onIonInput={handleSearch} placeholder="Rechercher un locataire..." />
-          <IonSelect value={filterStatus} placeholder="Filtrer par statut" onIonChange={(e) => setFilterStatus(e.detail.value)}>
-            <IonSelectOption value="">Tous les statuts</IonSelectOption>
-            <IonSelectOption value="Actif">Actif</IonSelectOption>
-            <IonSelectOption value="En retard de paiement">En retard de paiement</IonSelectOption>
-          </IonSelect>
+      <IonContent className="tenant-content">
+        <div className="g-page">
 
-          {/* Sélection du logement */}
-          <IonSelect value={filterLogement} placeholder="Filtrer par logement" onIonChange={(e) => setFilterLogement(e.detail.value)}>
-            <IonSelectOption value="">Tous les logements</IonSelectOption>
-            <IonSelectOption value="Mon domicile 1">Mon domicile 1</IonSelectOption>
-            <IonSelectOption value="Mon domicile 2">Mon domicile 2</IonSelectOption>
-          </IonSelect>
-
-          <IonButton className="add-button" onClick={handleAddTenant}>
-            <IonIcon slot="start" icon={addCircle} />
-            Ajouter un locataire
-          </IonButton>
-        </div>
-
-        {Object.entries(groupedTenants).map(([logement, tenants]) => (
-          <div key={logement}>
-            <h2>{logement}</h2> {/* Afficher le nom du logement */}
-            {tenants.map(tenant => (
-              <IonCard key={tenant.id} className="tenant-card">
-                <IonCardHeader>
-                  <IonCardSubtitle>{tenant.compartiment}</IonCardSubtitle> {/* Afficher le compartiment occupé */}
-                  <IonCardTitle>{tenant.name}</IonCardTitle>
-                </IonCardHeader>
-                <IonCardContent>
-                  <div className="tenant-info">
-                    <h3>Informations Personnelles</h3>
-                    <p><strong>Contact :</strong> {tenant.contact}</p>
-                    <p><strong>Téléphone :</strong> {tenant.phoneNumber}</p>
-                    <p><strong>CNI :</strong> {tenant.cniNumber}</p>
-                  </div>
-
-                  <div className="tenant-contract">
-                    <h3>Détails du Contrat</h3>
-                    <p><strong>Numéro de contrat :</strong> {tenant.contractNumber}</p>
-                    <p><strong>Date de début :</strong> {tenant.startDate}</p>
-                    <p><strong>Loyer :</strong> {tenant.rent} FCFA</p>
-                    <p><strong>Date de prochain paiement :</strong> {tenant.nextPaymentDate}</p>
-                  </div>
-
-                  <div className="tenant-status">
-                    <h3>Statut</h3>
-                    <p><strong>Statut :</strong> <span className={`status ${tenant.status.replace(/\s+/g, '-').toLowerCase()}`}>{tenant.status}</span></p>
-                  </div>
-
-                  <div className="actions">
-                    <IonButton className="modify-button" onClick={() => handleModifyTenant(tenant)}>
-                      <IonIcon slot="start" icon={create} />
-                      Modifier
-                    </IonButton>
-                    <IonButton className="delete-button" onClick={() => handleDeleteTenant(tenant.id)}>
-                      <IonIcon slot="start" icon={trash} />
-                      Supprimer
-                    </IonButton>
-                  </div>
-                </IonCardContent>
-              </IonCard>
-            ))}
+          <div className="tenant-top g-animate">
+            <IonSearchbar
+              value={search}
+              onIonInput={e => setSearch(e.detail.value!)}
+              placeholder="Rechercher un locataire…"
+              className="tenant-search"
+            />
+            <button
+              className="tenant-add-btn"
+              onClick={() => history.push('/ajouter-locataire')}
+            >
+              + Ajouter
+            </button>
           </div>
-        ))}
+
+          {loading ? (
+            <div className="dash-loading">
+              <div className="dash-spinner" />
+              <p>Chargement…</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="g-empty g-animate">
+              <div className="g-empty__icon">👤</div>
+              <p className="g-empty__text">Aucun locataire trouvé</p>
+            </div>
+          ) : (
+            <div className="tenant-list">
+              {filtered.map((o, i) => (
+                <div
+                  key={o.id}
+                  className={`tenant-card g-animate g-animate--${Math.min(i + 1, 5)}`}
+                >
+                  {/* Header */}
+                  <div className="tenant-card__head">
+                    <div className="tenant-avatar">
+                      {o.nom_complet.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="tenant-card__info">
+                      <p className="tenant-card__name">{o.nom_complet}</p>
+                      <p className="tenant-card__phone">{o.telephone}</p>
+                    </div>
+                    <span className={`g-badge ${o.statut === 'Actif' ? 'g-badge--green' : 'g-badge--red'}`}>
+                      {o.statut}
+                    </span>
+                  </div>
+
+                  <div className="g-divider" />
+
+                  {/* Details */}
+                  <div className="tenant-card__details">
+                    <div className="tenant-detail">
+                      <span className="tenant-detail__label">Loyer</span>
+                      <span className="tenant-detail__value tenant-detail__value--gold">
+                        {parseFloat(o.loyer).toLocaleString('fr-CA')} $
+                      </span>
+                    </div>
+                    <div className="tenant-detail">
+                      <span className="tenant-detail__label">Contrat</span>
+                      <span className="tenant-detail__value">{o.numero_contrat}</span>
+                    </div>
+                    <div className="tenant-detail">
+                      <span className="tenant-detail__label">Prochain paiement</span>
+                      <span className={`tenant-detail__value ${new Date(o.date_prochain_paiement) < new Date()
+                          ? 'tenant-detail__value--red'
+                          : ''
+                        }`}>
+                        {new Date(o.date_prochain_paiement).toLocaleDateString('fr-CA')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="tenant-card__actions">
+                    <button
+                      className="g-btn g-btn--outline tenant-btn"
+                      onClick={() => history.push(`/ajouter-locataire`, { tenant: o })}
+                    >
+                      ✏️ Modifier
+                    </button>
+                    <button
+                      className="g-btn g-btn--danger tenant-btn"
+                      onClick={() => handleDelete(o.id)}
+                    >
+                      🗑 Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </IonContent>
     </IonPage>
   );

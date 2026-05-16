@@ -16,7 +16,7 @@ import {
   IonProgressBar,
 } from '@ionic/react';
 import axios from './../api/axiosConfig';
-import './../assets/css/AddCompartimentForm.css';
+import './../assets/css/AddTenantForm.css';
 
 interface Locataire {
   nom_complet: string;
