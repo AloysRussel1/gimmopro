@@ -65,7 +65,7 @@ const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
       console.log('Occupant ajouté avec succès:', response.data);
       alert('Occupant ajouté avec succès !');
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'occupant:', error.response?.data || error.message);
+      console.error('Erreur lors de l\'ajout de l\'occupant:', (error as any));
       alert('Erreur lors de l\'ajout de l\'occupant.');
     }
   };
