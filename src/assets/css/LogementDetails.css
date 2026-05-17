@@ -7,27 +7,25 @@
   background: linear-gradient(135deg, #1A1710 0%, #13120D 100%);
   border: 1px solid rgba(201,168,76,0.2);
   border-radius: var(--g-radius);
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 20px; margin-bottom: 20px;
 }
 .ld-header__name {
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 600;
-  color: var(--g-text) !important; margin-bottom: 4px;
+  font-size: 22px; font-weight: 600; color: var(--g-text) !important; margin-bottom: 4px;
 }
-.ld-header__loc { font-size: 13px; color: var(--g-gold); margin-bottom: 14px; }
+.ld-header__loc  { font-size: 13px; color: var(--g-gold); margin-bottom: 4px; }
+.ld-header__desc { font-size: 12px; color: var(--g-text-3); margin-bottom: 14px; line-height: 1.4; }
 
 /* Stats mini */
-.ld-stats { display: flex; gap: 12px; }
+.ld-stats { display: flex; gap: 10px; }
 .ld-stat {
   flex: 1; background: var(--g-surface);
   border: 1px solid var(--g-border);
-  border-radius: var(--g-radius-sm);
-  padding: 10px; text-align: center;
+  border-radius: var(--g-radius-sm); padding: 10px; text-align: center;
 }
 .ld-stat--green { border-color: rgba(76,175,125,0.3); }
 .ld-stat--gold  { border-color: rgba(201,168,76,0.3); }
-.ld-stat__val   { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--g-text) !important; }
+.ld-stat__val   { display: block; font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--g-text) !important; }
 .ld-stat__label { font-size: 10px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.08em; }
 
 /* Controls */
@@ -36,8 +34,8 @@
 .ld-add-btn {
   background: var(--g-gold); color: #0A0A0F;
   border: none; border-radius: var(--g-radius-sm);
-  padding: 10px 14px; font-family: var(--font-body);
-  font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer;
+  padding: 10px 12px; font-family: var(--font-body);
+  font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
 }
 
 .ld-filter {
@@ -49,49 +47,104 @@
   padding: 10px 12px; width: 100%; margin-bottom: 16px; outline: none;
 }
 
-/* Card compartiment */
+/* Cards compartiments */
 .ld-list  { display: flex; flex-direction: column; gap: 14px; }
-.ld-card  { background: var(--g-surface); border: 1px solid var(--g-border); border-radius: var(--g-radius); padding: 16px; }
+.ld-card  {
+  background: var(--g-surface); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); padding: 16px;
+}
 
-.ld-card__head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.ld-card__head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 10px;
+}
 .ld-card__name { font-weight: 600; font-size: 16px; color: var(--g-text) !important; }
 .ld-card__type { font-size: 11px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 
 /* Pièces */
-.ld-rooms { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ld-rooms { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .ld-room-pill {
   background: var(--g-surface-2); border: 1px solid var(--g-border);
   border-radius: 8px; padding: 4px 10px;
-  font-size: 12px; color: var(--g-text-2) !important;
+  font-size: 11px; color: var(--g-text-2) !important;
 }
 
-/* Occupant actuel */
+/* Occupant */
 .ld-occupant {
-  background: var(--g-surface-2);
-  border: 1px solid rgba(201,168,76,0.2);
-  border-radius: var(--g-radius-sm);
-  padding: 12px 14px;
-  display: flex; justify-content: space-between; align-items: center;
+  background: var(--g-surface-2); border: 1px solid rgba(201,168,76,0.15);
+  border-radius: var(--g-radius-sm); padding: 12px 14px;
+  display: flex; justify-content: space-between; align-items: flex-start;
   gap: 12px; margin-bottom: 12px;
 }
-.ld-occupant__info { flex: 1; min-width: 0; }
-.ld-occupant__name { font-weight: 600; font-size: 14px; color: var(--g-text) !important; margin-bottom: 2px; }
-.ld-occupant__detail { font-size: 12px; color: var(--g-text-2); margin-bottom: 2px; }
-.ld-occupant__next  { font-size: 11px; color: var(--g-text-3); }
-.ld-retard { color: var(--g-danger) !important; font-weight: 700; }
-.ld-actif  { color: var(--g-success) !important; font-weight: 700; }
+.ld-occupant__info { flex: 1; }
+.ld-occupant__name   { font-weight: 600; font-size: 14px; color: var(--g-text) !important; margin-bottom: 2px; }
+.ld-occupant__detail { font-size: 12px; color: var(--g-gold) !important; margin-bottom: 2px; }
+.ld-occupant__statut { font-size: 11px; font-weight: 600; }
+.ld-retard { color: var(--g-danger) !important; }
+.ld-actif  { color: var(--g-success) !important; }
 .ld-liberer-btn { width: auto !important; padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
 
 /* Libre */
 .ld-libre-msg {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 0; margin-bottom: 12px;
-  border-top: 1px solid var(--g-border);
-  border-bottom: 1px solid var(--g-border);
+  border-top: 1px solid var(--g-border); border-bottom: 1px solid var(--g-border);
 }
-.ld-libre-msg span { font-size: 13px; color: var(--g-success); font-weight: 500; }
+.ld-libre-msg span { font-size: 13px; color: var(--g-success) !important; font-weight: 500; }
 .ld-assign-btn { width: auto !important; padding: 8px 14px; font-size: 12px; }
 
 /* Actions */
 .ld-card__actions { display: flex; gap: 8px; }
 .ld-btn { flex: 1; padding: 9px; font-size: 12px; }
+
+/* ── MODAL HISTORIQUE ── */
+.hist-modal {
+  background: var(--g-surface);
+  min-height: 100%; padding: 28px 20px 48px;
+  overflow-y: auto;
+}
+.hist-modal__head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px;
+}
+.hist-modal__title {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600; color: var(--g-text) !important;
+}
+.hist-modal__comp { font-size: 13px; color: var(--g-gold); margin-top: 2px; }
+
+.hist-list { display: flex; flex-direction: column; gap: 12px; }
+.hist-card {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); padding: 16px;
+}
+.hist-card--actif { border-color: rgba(76,175,125,0.3); }
+
+.hist-card__head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.hist-card__nom { font-weight: 600; font-size: 15px; color: var(--g-text) !important; }
+
+.hist-card__dates {
+  display: flex; gap: 0; margin-bottom: 10px;
+}
+.hist-card__date {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  border-right: 1px solid var(--g-border); padding-right: 12px; margin-right: 12px;
+}
+.hist-card__date:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+.hist-card__date-label { font-size: 10px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.hist-card__date-val   { font-size: 13px; font-weight: 600; color: var(--g-text) !important; }
+
+.hist-card__loyer { font-size: 12px; color: var(--g-text-2); }
+.hist-card__loyer strong { color: var(--g-gold) !important; }
+
+/* Réutilisé depuis PaymentManagement */
+.pay-modal__close {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  color: var(--g-text-2) !important; width: 36px; height: 36px;
+  border-radius: 50%; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}

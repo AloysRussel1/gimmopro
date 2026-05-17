@@ -1,178 +1,237 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonRow,
-  IonCol,
-  IonButton,
-  IonInput,
-  IonLabel,
-  IonItem,
-  IonDatetime,
-  IonProgressBar,
+  IonPage, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonProgressBar,
 } from '@ionic/react';
-import axios from './../api/axiosConfig';
-import './../assets/css/AddCompartimentForm.css';
+import { useHistory, useParams } from 'react-router-dom';
+import axiosInstance from '../api/axiosConfig';
+import '../assets/css/AddCompartimentForm.css';
 
-interface Locataire {
-  nom_complet: string;
-  telephone: string;
-  cni: string;
-  email: string;
-  numero_contrat: string;
-  date_debut_contrat: string;
-  loyer: string;
-  date_prochain_paiement: string;
-  statut: string;
-}
+const TYPES = [
+  { value: 'APPARTEMENT', label: 'Appartement', icon: '🏠', desc: 'Plusieurs chambres, salon, cuisine' },
+  { value: 'STUDIO',      label: 'Studio',      icon: '🛏', desc: '1 chambre, cuisine, douche' },
+  { value: 'CHAMBRE',     label: 'Chambre',      icon: '🚪', desc: '1 chambre, douche' },
+  { value: 'BOUTIQUE',    label: 'Boutique',     icon: '🏪', desc: 'Local commercial' },
+];
 
-interface AddOccupantFormProps {
-  existingData?: Locataire;
-}
+const STEPS = ['Type', 'Nom', 'Composition', 'Confirmation'];
 
-const AddOccupantForm: React.FC<AddOccupantFormProps> = ({ existingData }) => {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<Locataire>({
-    nom_complet: '',
-    telephone: '',
-    cni: '',
-    email: '',
-    numero_contrat: '',
-    date_debut_contrat: '',
-    loyer: '',
-    date_prochain_paiement: '',
-    statut: 'Actif',
+const AddCompartimentForm: React.FC = () => {
+  const { logement_id } = useParams<{ logement_id: string }>();
+  const history = useHistory();
+  const [step,   setStep]   = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState('');
+
+  const [form, setForm] = useState({
+    type:      '',
+    nom:       '',
+    chambres:  '0',
+    salons:    '0',
+    douches:   '0',
+    cuisines:  '0',
   });
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    if (name === 'date_debut_contrat' || name === 'date_prochain_paiement') {
-      const formattedDate = new Date(value).toISOString().split('T')[0];
-      setFormData((prev) => ({ ...prev, [name]: formattedDate }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const set = (field: string, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setError('');
   };
 
-  const nextStep = () => setStep(step + 1);
-  const previousStep = () => setStep(step - 1);
+  // Pré-remplir selon le type
+  const selectType = (type: string) => {
+    set('type', type);
+    if (type === 'STUDIO')  setForm(f => ({ ...f, type, chambres: '1', salons: '0', douches: '1', cuisines: '1' }));
+    if (type === 'CHAMBRE') setForm(f => ({ ...f, type, chambres: '1', salons: '0', douches: '1', cuisines: '0' }));
+    if (type === 'BOUTIQUE') setForm(f => ({ ...f, type, chambres: '0', salons: '1', douches: '1', cuisines: '0' }));
+    if (type === 'APPARTEMENT') setForm(f => ({ ...f, type, chambres: '2', salons: '1', douches: '1', cuisines: '1' }));
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validate = (): string => {
+    if (step === 1 && !form.type) return 'Sélectionnez un type.';
+    if (step === 2 && !form.nom)  return 'Le nom est requis.';
+    return '';
+  };
+
+  const next = () => {
+    const err = validate();
+    if (err) { setError(err); return; }
+    setStep(s => s + 1);
+  };
+
+  const selectedType = TYPES.find(t => t.value === form.type);
+
+  const handleSubmit = async () => {
+    setSaving(true); setError('');
     try {
-      const payload = {
-        ...formData,
-        date_debut_contrat: new Date(formData.date_debut_contrat).toISOString().split('T')[0],
-        date_prochain_paiement: new Date(formData.date_prochain_paiement).toISOString().split('T')[0],
-      };
-      const response = await axios.post(`occupants/`, payload);
-      console.log('Occupant ajouté avec succès:', response.data);
-      alert('Occupant ajouté avec succès !');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error('Erreur lors de l\'ajout de l\'occupant:', message);
-      alert(`Erreur lors de l'ajout de l'occupant : ${message}`);
+      await axiosInstance.post(`logements/${logement_id}/compartiments/ajouter/`, {
+        type:      form.type,
+        nom:       form.nom,
+        statut:    'LIBRE',
+        chambres:  parseInt(form.chambres),
+        salons:    parseInt(form.salons),
+        douches:   parseInt(form.douches),
+        cuisines:  parseInt(form.cuisines),
+        logement:  parseInt(logement_id),
+      });
+      history.replace(`/logement/${logement_id}`);
+    } catch (e: any) {
+      setError('Erreur lors de l\'ajout. Vérifiez les informations.');
+    } finally {
+      setSaving(false);
     }
   };
-
-  useEffect(() => {
-    if (existingData) setFormData(existingData);
-  }, [existingData]);
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>{existingData ? 'Modifier Locataire' : 'Ajouter un Locataire'}</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '18px' }}>
+            Ajouter un compartiment
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding form-page">
-        <IonProgressBar value={step / 7} className="progress-bar" />
-        <form onSubmit={handleSubmit} className="form-classic">
-          <h2>Étape {step}</h2>
 
+      <IonContent className="comp-form-content">
+        <div className="tf-wrap">
+          <IonProgressBar value={step / STEPS.length} />
+          <p className="tf-step-label">Étape {step}/{STEPS.length} — {STEPS[step - 1]}</p>
+
+          {error && <p className="tf-error">⚠ {error}</p>}
+
+          {/* ── ÉTAPE 1 — Type ── */}
           {step === 1 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Nom du Locataire</IonLabel>
-                <IonInput name="nom_complet" value={formData.nom_complet} onIonInput={handleChange} placeholder="Entrez le nom du locataire" />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">Contact du Locataire</IonLabel>
-                <IonInput name="telephone" value={formData.telephone} onIonInput={handleChange} placeholder="Entrez le contact du locataire" />
-              </IonItem>
-              <IonItem>
-                <IonLabel position="stacked">CNI du Locataire</IonLabel>
-                <IonInput name="cni" value={formData.cni} onIonInput={handleChange} placeholder="Entrez le numéro de CNI" />
-              </IonItem>
-            </>
-          )}
-
-          {step === 2 && (
-            <IonItem>
-              <IonLabel position="stacked">Email du Locataire</IonLabel>
-              <IonInput name="email" value={formData.email} onIonInput={handleChange} placeholder="Entrez l'email du locataire" />
-            </IonItem>
-          )}
-
-          {step === 3 && (
-            <IonItem>
-              <IonLabel position="stacked">Numéro de Contrat</IonLabel>
-              <IonInput name="numero_contrat" value={formData.numero_contrat} onIonInput={handleChange} placeholder="Entrez le numéro du contrat" />
-            </IonItem>
-          )}
-
-          {step === 4 && (
-            <IonItem>
-              <IonLabel position="stacked">Date de Début du Contrat</IonLabel>
-              <IonDatetime name="date_debut_contrat" value={formData.date_debut_contrat} onIonChange={handleChange} presentation="date" />
-            </IonItem>
-          )}
-
-          {step === 5 && (
-            <IonItem>
-              <IonLabel position="stacked">Loyer Mensuel</IonLabel>
-              <IonInput name="loyer" type="number" value={formData.loyer} onIonInput={handleChange} placeholder="Entrez le montant du loyer" />
-            </IonItem>
-          )}
-
-          {step === 6 && (
-            <IonItem>
-              <IonLabel position="stacked">Date de Prochain Paiement</IonLabel>
-              <IonDatetime name="date_prochain_paiement" value={formData.date_prochain_paiement} onIonChange={handleChange} presentation="date" />
-            </IonItem>
-          )}
-
-          {step === 7 && (
-            <div className="confirmation-section">
-              <h3>Confirmation</h3>
-              {Object.entries(formData).map(([key, value]) => (
-                <p key={key}><strong>{key}:</strong> {value}</p>
-              ))}
+            <div className="tf-section">
+              <p className="comp-section-title">Quel type de compartiment ?</p>
+              <div className="comp-type-grid">
+                {TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    className={`comp-type-btn ${form.type === t.value ? 'comp-type-btn--active' : ''}`}
+                    onClick={() => selectType(t.value)}
+                  >
+                    <span className="comp-type-btn__icon">{t.icon}</span>
+                    <span className="comp-type-btn__label">{t.label}</span>
+                    <span className="comp-type-btn__desc">{t.desc}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          <IonRow>
-            <IonCol>
-              {step > 1 && (
-                <IonButton expand="block" onClick={previousStep} className="btn">Précédent</IonButton>
+          {/* ── ÉTAPE 2 — Nom ── */}
+          {step === 2 && (
+            <div className="tf-section">
+              {selectedType && (
+                <div className="tf-info-box">
+                  <p>{selectedType.icon} <strong>{selectedType.label}</strong></p>
+                  <p className="tf-info-note">{selectedType.desc}</p>
+                </div>
               )}
-            </IonCol>
-            <IonCol>
-              {step < 7 ? (
-                <IonButton expand="block" onClick={nextStep} className="btn">Suivant</IonButton>
-              ) : (
-                <IonButton expand="block" type="submit" className="btn">Enregistrer</IonButton>
-              )}
-            </IonCol>
-          </IonRow>
-        </form>
+              <div className="g-input-group">
+                <label className="g-label">Nom du compartiment *</label>
+                <input
+                  className="g-input"
+                  placeholder={`Ex: ${form.type === 'APPARTEMENT' ? 'Appartement A1' : form.type === 'STUDIO' ? 'Studio S1' : form.type === 'CHAMBRE' ? 'Chambre C1' : 'Boutique B1'}`}
+                  value={form.nom}
+                  onChange={e => set('nom', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── ÉTAPE 3 — Composition ── */}
+          {step === 3 && (
+            <div className="tf-section">
+              <p className="comp-section-title">Composition du compartiment</p>
+
+              <div className="comp-counter-grid">
+                {form.type !== 'BOUTIQUE' && (
+                  <div className="comp-counter">
+                    <p className="comp-counter__label">🛏 Chambres</p>
+                    <div className="comp-counter__controls">
+                      <button onClick={() => set('chambres', String(Math.max(0, parseInt(form.chambres) - 1)))}>−</button>
+                      <span>{form.chambres}</span>
+                      <button onClick={() => set('chambres', String(parseInt(form.chambres) + 1))}>+</button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="comp-counter">
+                  <p className="comp-counter__label">🛋 Salons</p>
+                  <div className="comp-counter__controls">
+                    <button onClick={() => set('salons', String(Math.max(0, parseInt(form.salons) - 1)))}>−</button>
+                    <span>{form.salons}</span>
+                    <button onClick={() => set('salons', String(parseInt(form.salons) + 1))}>+</button>
+                  </div>
+                </div>
+
+                <div className="comp-counter">
+                  <p className="comp-counter__label">🚿 Douches</p>
+                  <div className="comp-counter__controls">
+                    <button onClick={() => set('douches', String(Math.max(0, parseInt(form.douches) - 1)))}>−</button>
+                    <span>{form.douches}</span>
+                    <button onClick={() => set('douches', String(parseInt(form.douches) + 1))}>+</button>
+                  </div>
+                </div>
+
+                {form.type !== 'CHAMBRE' && (
+                  <div className="comp-counter">
+                    <p className="comp-counter__label">🍳 Cuisines</p>
+                    <div className="comp-counter__controls">
+                      <button onClick={() => set('cuisines', String(Math.max(0, parseInt(form.cuisines) - 1)))}>−</button>
+                      <span>{form.cuisines}</span>
+                      <button onClick={() => set('cuisines', String(parseInt(form.cuisines) + 1))}>+</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── ÉTAPE 4 — Confirmation ── */}
+          {step === 4 && (
+            <div className="tf-section">
+              <div className="tf-confirm">
+                <p className="tf-confirm__title">✓ Récapitulatif</p>
+                {[
+                  ['Type',      `${selectedType?.icon} ${selectedType?.label}`],
+                  ['Nom',       form.nom],
+                  ['Chambres',  form.chambres],
+                  ['Salons',    form.salons],
+                  ['Douches',   form.douches],
+                  ['Cuisines',  form.cuisines],
+                  ['Statut',    '🔓 Libre'],
+                ].map(([k, v]) => (
+                  <div className="tf-confirm__row" key={k}>
+                    <span className="tf-confirm__key">{k}</span>
+                    <span className="tf-confirm__val">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="tf-nav">
+            {step > 1 && (
+              <button className="g-btn g-btn--outline" onClick={() => { setStep(s => s - 1); setError(''); }}>
+                ← Retour
+              </button>
+            )}
+            {step < 4 ? (
+              <button className="g-btn g-btn--primary" onClick={next}>
+                Suivant →
+              </button>
+            ) : (
+              <button className="g-btn g-btn--primary" onClick={handleSubmit} disabled={saving}>
+                {saving ? '⏳ Enregistrement…' : '✓ Ajouter'}
+              </button>
+            )}
+          </div>
+        </div>
       </IonContent>
     </IonPage>
   );
 };
 
-export default AddOccupantForm;
+export default AddCompartimentForm;
