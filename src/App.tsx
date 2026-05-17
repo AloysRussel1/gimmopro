@@ -4,6 +4,7 @@ import { IonReactRouter } from '@ionic/react-router';
 
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import LogementPage from './pages/LogementPage';
 import LogementDetails from './pages/LogementDetails';
@@ -50,6 +51,7 @@ const App: React.FC = () => (
       <div className="content-container">
         <IonRouterOutlet>
           <Route path="/login" component={Login} exact />
+          <Route path="/register" component={Register} exact />
 
           <PrivateRoute path="/dashboard"  component={Dashboard}   exact />
           <PrivateRoute path="/logement"   component={LogementPage} exact />

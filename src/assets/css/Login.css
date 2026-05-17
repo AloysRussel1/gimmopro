@@ -51,6 +51,7 @@
   border: 1px solid var(--g-border);
   border-radius: var(--g-radius-lg);
   padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 0;
 }
 
 .login-error {
@@ -58,4 +59,19 @@
   background: var(--g-danger-dim);
   border-radius: 8px; padding: 10px 14px;
   margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.login-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 16px 0;
+}
+.login-divider::before,
+.login-divider::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--g-border);
+}
+.login-divider span {
+  font-size: 12px; color: var(--g-text-3);
+  font-weight: 500;
 }
