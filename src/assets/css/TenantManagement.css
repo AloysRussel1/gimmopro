@@ -2,10 +2,7 @@
 
 .tenant-content { --background: var(--g-bg); }
 
-.tenant-top {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 12px;
-}
+.tenant-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .tenant-search { flex: 1; }
 .tenant-add-btn {
   background: var(--g-gold); color: #0A0A0F;
@@ -15,10 +12,7 @@
 }
 .tenant-add-btn:active { background: var(--g-gold-light); }
 
-/* Filtres */
-.tenant-filters {
-  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-}
+.tenant-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .tenant-filter-btn {
   padding: 6px 14px; border-radius: 100px;
   background: var(--g-surface-2); border: 1px solid var(--g-border);
@@ -33,46 +27,53 @@
 .tenant-list { display: flex; flex-direction: column; gap: 14px; }
 
 .tenant-card {
-  background: var(--g-surface);
-  border: 1px solid var(--g-border);
-  border-radius: var(--g-radius);
-  padding: 18px;
+  background: var(--g-surface); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); padding: 18px;
 }
-
-.tenant-card__head {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 10px;
-}
+.tenant-card__head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .tenant-avatar {
-  width: 44px; height: 44px;
-  background: var(--g-gold-dim); border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; background: var(--g-gold-dim);
+  border: 1px solid rgba(201,168,76,0.3); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 20px; font-weight: 700;
   color: var(--g-gold); flex-shrink: 0;
 }
-.tenant-card__info { flex: 1; min-width: 0; }
-.tenant-card__name {
-  font-weight: 600; font-size: 16px; color: var(--g-text) !important;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.tenant-card__info  { flex: 1; min-width: 0; }
+.tenant-card__name  { font-weight: 600; font-size: 16px; color: var(--g-text) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tenant-card__phone { font-size: 13px; color: var(--g-text-2); margin-top: 2px; }
 
-/* Localisation */
 .tenant-location {
   display: flex; align-items: center; gap: 8px;
   background: var(--g-surface-2); border-radius: 8px;
   padding: 8px 12px; margin-bottom: 4px;
 }
-.tenant-location__icon { font-size: 14px; }
 .tenant-location__text { font-size: 12px; color: var(--g-gold) !important; font-weight: 600; }
 
-/* Détails */
 .tenant-card__details { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .tenant-detail { display: flex; justify-content: space-between; align-items: center; }
-.tenant-detail__label { font-size: 12px; color: var(--g-text-3); font-weight: 500; }
+.tenant-detail__label { font-size: 12px; color: var(--g-text-3); }
 .tenant-detail__value { font-size: 13px; font-weight: 600; color: var(--g-text) !important; }
 .tenant-detail__value--gold { color: var(--g-gold) !important; }
 .tenant-detail__value--red  { color: var(--g-danger) !important; }
 
-/* Actions */
-.tenant-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.tenant-btn { flex: 1; padding: 9px 8px; font-size: 12px; min-width: 70px; }
+.tenant-card__actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.tenant-btn { flex: 1; padding: 9px 6px; font-size: 11px; min-width: 60px; }
+
+/* Modal modification */
+.edit-modal {
+  background: var(--g-surface); min-height: 100%;
+  padding: 28px 20px 48px; overflow-y: auto;
+}
+.pay-modal__head { display: flex; justify-content: space-between; align-items: center; }
+.pay-modal__title { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--g-text) !important; }
+.pay-modal__close {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  color: var(--g-text-2) !important; width: 36px; height: 36px;
+  border-radius: 50%; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tf-error {
+  background: var(--g-danger-dim); color: var(--g-danger) !important;
+  border-radius: var(--g-radius-sm); padding: 10px 14px;
+  font-size: 13px; margin-bottom: 16px;
+}

@@ -1,29 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle,
-  IonContent, IonSearchbar,
+  IonContent, IonSearchbar, IonModal,
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
-  id: number;
-  nom_complet: string;
-  telephone: string;
-  email: string;
-  cni: string;
-  numero_contrat: string;
-  date_debut_contrat: string;
-  loyer: string;
-  date_prochain_paiement: string;
-  statut: string;
-  actif: boolean;
-  compartiment: number | null;
-  compartiment_nom: string;
-  logement: number | null;
-  logement_nom: string;
-  logement_loc: string;
+  id: number; nom_complet: string; telephone: string; email: string;
+  cni: string; numero_contrat: string; date_debut_contrat: string;
+  loyer: string; date_prochain_paiement: string; statut: string; actif: boolean;
+  compartiment: number | null; compartiment_nom: string;
+  logement: number | null; logement_nom: string; logement_loc: string;
 }
 
 const TenantManagement: React.FC = () => {
@@ -32,6 +21,14 @@ const TenantManagement: React.FC = () => {
   const [search,    setSearch]    = useState('');
   const [loading,   setLoading]   = useState(true);
   const [filter,    setFilter]    = useState<'tous' | 'actif' | 'retard'>('tous');
+
+  // Modal modification
+  const [showEdit,   setShowEdit]   = useState(false);
+  const [editData,   setEditData]   = useState<Partial<Occupant>>({});
+  const [editId,     setEditId]     = useState<number | null>(null);
+  const [saving,     setSaving]     = useState(false);
+  const [editError,  setEditError]  = useState('');
+
   const history = useHistory();
 
   useEffect(() => {
@@ -69,16 +66,41 @@ const TenantManagement: React.FC = () => {
   const handleContrat = (id: number) => {
     const token = localStorage.getItem('access_token');
     const url   = `${axiosInstance.defaults.baseURL}occupants/${id}/contrat/`;
-    // Ouvrir dans un nouvel onglet avec le token
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.blob())
       .then(blob => {
-        const link = document.createElement('a');
-        link.href  = URL.createObjectURL(blob);
+        const link  = document.createElement('a');
+        link.href   = URL.createObjectURL(blob);
         link.download = `contrat_${id}.pdf`;
         link.click();
-      })
-      .catch(console.error);
+      }).catch(console.error);
+  };
+
+  const openEdit = (o: Occupant) => {
+    setEditId(o.id);
+    setEditData({
+      nom_complet:            o.nom_complet,
+      telephone:              o.telephone,
+      email:                  o.email,
+      loyer:                  o.loyer,
+      date_prochain_paiement: o.date_prochain_paiement,
+    });
+    setEditError('');
+    setShowEdit(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editId) return;
+    setSaving(true); setEditError('');
+    try {
+      const res = await axiosInstance.put(`occupants/${editId}/`, editData);
+      setOccupants(prev => prev.map(o => o.id === editId ? { ...o, ...res.data } : o));
+      setShowEdit(false);
+    } catch (e: any) {
+      setEditError('Erreur lors de la modification.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -94,7 +116,6 @@ const TenantManagement: React.FC = () => {
       <IonContent className="tenant-content">
         <div className="g-page">
 
-          {/* Top bar */}
           <div className="tenant-top g-animate">
             <IonSearchbar
               value={search}
@@ -107,7 +128,6 @@ const TenantManagement: React.FC = () => {
             </button>
           </div>
 
-          {/* Filtres */}
           <div className="tenant-filters g-animate g-animate--1">
             {(['tous', 'actif', 'retard'] as const).map(f => (
               <button
@@ -131,12 +151,8 @@ const TenantManagement: React.FC = () => {
             <div className="tenant-list">
               {filtered.map((o, i) => (
                 <div key={o.id} className={`tenant-card g-animate g-animate--${Math.min(i+1,5)}`}>
-
-                  {/* Header */}
                   <div className="tenant-card__head">
-                    <div className="tenant-avatar">
-                      {o.nom_complet.charAt(0).toUpperCase()}
-                    </div>
+                    <div className="tenant-avatar">{o.nom_complet.charAt(0).toUpperCase()}</div>
                     <div className="tenant-card__info">
                       <p className="tenant-card__name">{o.nom_complet}</p>
                       <p className="tenant-card__phone">{o.telephone}</p>
@@ -146,10 +162,9 @@ const TenantManagement: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Localisation */}
                   {(o.logement_nom || o.compartiment_nom) && (
                     <div className="tenant-location">
-                      <span className="tenant-location__icon">🏠</span>
+                      <span>🏠</span>
                       <span className="tenant-location__text">
                         {o.logement_nom}{o.compartiment_nom ? ` · ${o.compartiment_nom}` : ''}
                       </span>
@@ -158,11 +173,10 @@ const TenantManagement: React.FC = () => {
 
                   <div className="g-divider" />
 
-                  {/* Détails */}
                   <div className="tenant-card__details">
                     <div className="tenant-detail">
                       <span className="tenant-detail__label">N° Contrat</span>
-                      <span className="tenant-detail__value" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                      <span className="tenant-detail__value" style={{ fontFamily: 'monospace', fontSize: '11px' }}>
                         {o.numero_contrat}
                       </span>
                     </div>
@@ -174,40 +188,23 @@ const TenantManagement: React.FC = () => {
                     </div>
                     <div className="tenant-detail">
                       <span className="tenant-detail__label">Prochain paiement</span>
-                      <span className={`tenant-detail__value ${
-                        new Date(o.date_prochain_paiement) < new Date()
-                          ? 'tenant-detail__value--red' : ''
-                      }`}>
+                      <span className={`tenant-detail__value ${new Date(o.date_prochain_paiement) < new Date() ? 'tenant-detail__value--red' : ''}`}>
                         {new Date(o.date_prochain_paiement).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                    <div className="tenant-detail">
-                      <span className="tenant-detail__label">Entrée</span>
-                      <span className="tenant-detail__value">
-                        {new Date(o.date_debut_contrat).toLocaleDateString('fr-FR')}
                       </span>
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="tenant-card__actions">
-                    <button
-                      className="g-btn g-btn--outline tenant-btn"
-                      onClick={() => handleContrat(o.id)}
-                      title="Télécharger le contrat PDF"
-                    >
+                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => openEdit(o)}>
+                      ✏️ Modifier
+                    </button>
+                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleContrat(o.id)}>
                       📄 Contrat
                     </button>
-                    <button
-                      className="g-btn g-btn--outline tenant-btn"
-                      onClick={() => handleLiberer(o.id, o.nom_complet)}
-                    >
-                      🚪 Libérer
+                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleLiberer(o.id, o.nom_complet)}>
+                      🚪 Départ
                     </button>
-                    <button
-                      className="g-btn g-btn--danger tenant-btn"
-                      onClick={() => handleDelete(o.id, o.nom_complet)}
-                    >
+                    <button className="g-btn g-btn--danger tenant-btn" onClick={() => handleDelete(o.id, o.nom_complet)}>
                       🗑
                     </button>
                   </div>
@@ -216,6 +213,48 @@ const TenantManagement: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Modal modification */}
+        <IonModal isOpen={showEdit} onDidDismiss={() => setShowEdit(false)}>
+          <div className="edit-modal">
+            <div className="pay-modal__head" style={{ marginBottom: '20px' }}>
+              <h2 className="pay-modal__title">Modifier le locataire</h2>
+              <button className="pay-modal__close" onClick={() => setShowEdit(false)}>✕</button>
+            </div>
+
+            {editError && <p className="tf-error">⚠ {editError}</p>}
+
+            <div className="g-input-group">
+              <label className="g-label">Nom complet</label>
+              <input className="g-input" value={editData.nom_complet || ''}
+                onChange={e => setEditData(d => ({ ...d, nom_complet: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Téléphone</label>
+              <input className="g-input" value={editData.telephone || ''}
+                onChange={e => setEditData(d => ({ ...d, telephone: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Email</label>
+              <input className="g-input" type="email" value={editData.email || ''}
+                onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Loyer mensuel (FCFA)</label>
+              <input className="g-input" type="number" value={editData.loyer || ''}
+                onChange={e => setEditData(d => ({ ...d, loyer: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Prochain paiement</label>
+              <input className="g-input" type="date" value={editData.date_prochain_paiement || ''}
+                onChange={e => setEditData(d => ({ ...d, date_prochain_paiement: e.target.value }))} />
+            </div>
+
+            <button className="g-btn g-btn--primary" onClick={handleSaveEdit} disabled={saving}>
+              {saving ? '⏳ Enregistrement…' : '✓ Sauvegarder'}
+            </button>
+          </div>
+        </IonModal>
       </IonContent>
     </IonPage>
   );
