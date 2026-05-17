@@ -18,14 +18,20 @@ interface Occupant {
   loyer: string;
   date_prochain_paiement: string;
   statut: string;
+  actif: boolean;
+  compartiment: number | null;
+  compartiment_nom: string;
   logement: number | null;
+  logement_nom: string;
+  logement_loc: string;
 }
 
 const TenantManagement: React.FC = () => {
   const [occupants, setOccupants] = useState<Occupant[]>([]);
-  const [filtered, setFiltered] = useState<Occupant[]>([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [filtered,  setFiltered]  = useState<Occupant[]>([]);
+  const [search,    setSearch]    = useState('');
+  const [loading,   setLoading]   = useState(true);
+  const [filter,    setFilter]    = useState<'tous' | 'actif' | 'retard'>('tous');
   const history = useHistory();
 
   useEffect(() => {
@@ -37,50 +43,85 @@ const TenantManagement: React.FC = () => {
 
   useEffect(() => {
     const q = search.toLowerCase();
-    setFiltered(occupants.filter(o =>
+    let result = occupants.filter(o =>
       o.nom_complet.toLowerCase().includes(q) ||
       o.telephone.includes(q) ||
-      o.email.toLowerCase().includes(q)
-    ));
-  }, [search, occupants]);
+      (o.compartiment_nom || '').toLowerCase().includes(q) ||
+      (o.logement_nom || '').toLowerCase().includes(q)
+    );
+    if (filter === 'actif')  result = result.filter(o => o.statut === 'Actif');
+    if (filter === 'retard') result = result.filter(o => o.statut === 'En retard');
+    setFiltered(result);
+  }, [search, occupants, filter]);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Supprimer ce locataire ?')) return;
+  const handleDelete = async (id: number, nom: string) => {
+    if (!window.confirm(`Supprimer ${nom} ?`)) return;
     await axiosInstance.delete(`occupants/${id}/`);
     setOccupants(prev => prev.filter(o => o.id !== id));
+  };
+
+  const handleLiberer = async (id: number, nom: string) => {
+    if (!window.confirm(`Confirmer le départ de ${nom} ?`)) return;
+    await axiosInstance.post(`occupants/${id}/liberer/`);
+    setOccupants(prev => prev.filter(o => o.id !== id));
+  };
+
+  const handleContrat = (id: number) => {
+    const token = localStorage.getItem('access_token');
+    const url   = `${axiosInstance.defaults.baseURL}occupants/${id}/contrat/`;
+    // Ouvrir dans un nouvel onglet avec le token
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.blob())
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href  = URL.createObjectURL(blob);
+        link.download = `contrat_${id}.pdf`;
+        link.click();
+      })
+      .catch(console.error);
   };
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle className="tenant-title">Locataires</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
+            Locataires
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="tenant-content">
         <div className="g-page">
 
+          {/* Top bar */}
           <div className="tenant-top g-animate">
             <IonSearchbar
               value={search}
               onIonInput={e => setSearch(e.detail.value!)}
-              placeholder="Rechercher un locataire…"
+              placeholder="Nom, téléphone, logement…"
               className="tenant-search"
             />
-            <button
-              className="tenant-add-btn"
-              onClick={() => history.push('/ajouter-locataire')}
-            >
+            <button className="tenant-add-btn" onClick={() => history.push('/ajouter-locataire')}>
               + Ajouter
             </button>
           </div>
 
+          {/* Filtres */}
+          <div className="tenant-filters g-animate g-animate--1">
+            {(['tous', 'actif', 'retard'] as const).map(f => (
+              <button
+                key={f}
+                className={`tenant-filter-btn ${filter === f ? 'tenant-filter-btn--active' : ''}`}
+                onClick={() => setFilter(f)}
+              >
+                {f === 'tous' ? 'Tous' : f === 'actif' ? '✓ Actifs' : '⚠ En retard'}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
-            <div className="dash-loading">
-              <div className="dash-spinner" />
-              <p>Chargement…</p>
-            </div>
+            <div className="g-loading"><div className="g-spinner" /></div>
           ) : filtered.length === 0 ? (
             <div className="g-empty g-animate">
               <div className="g-empty__icon">👤</div>
@@ -89,10 +130,8 @@ const TenantManagement: React.FC = () => {
           ) : (
             <div className="tenant-list">
               {filtered.map((o, i) => (
-                <div
-                  key={o.id}
-                  className={`tenant-card g-animate g-animate--${Math.min(i + 1, 5)}`}
-                >
+                <div key={o.id} className={`tenant-card g-animate g-animate--${Math.min(i+1,5)}`}>
+
                   {/* Header */}
                   <div className="tenant-card__head">
                     <div className="tenant-avatar">
@@ -107,27 +146,45 @@ const TenantManagement: React.FC = () => {
                     </span>
                   </div>
 
+                  {/* Localisation */}
+                  {(o.logement_nom || o.compartiment_nom) && (
+                    <div className="tenant-location">
+                      <span className="tenant-location__icon">🏠</span>
+                      <span className="tenant-location__text">
+                        {o.logement_nom}{o.compartiment_nom ? ` · ${o.compartiment_nom}` : ''}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="g-divider" />
 
-                  {/* Details */}
+                  {/* Détails */}
                   <div className="tenant-card__details">
                     <div className="tenant-detail">
-                      <span className="tenant-detail__label">Loyer</span>
-                      <span className="tenant-detail__value tenant-detail__value--gold">
-                        {parseFloat(o.loyer).toLocaleString('fr-CA')} $
+                      <span className="tenant-detail__label">N° Contrat</span>
+                      <span className="tenant-detail__value" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                        {o.numero_contrat}
                       </span>
                     </div>
                     <div className="tenant-detail">
-                      <span className="tenant-detail__label">Contrat</span>
-                      <span className="tenant-detail__value">{o.numero_contrat}</span>
+                      <span className="tenant-detail__label">Loyer mensuel</span>
+                      <span className="tenant-detail__value tenant-detail__value--gold">
+                        {parseFloat(o.loyer).toLocaleString('fr-FR')} FCFA
+                      </span>
                     </div>
                     <div className="tenant-detail">
                       <span className="tenant-detail__label">Prochain paiement</span>
-                      <span className={`tenant-detail__value ${new Date(o.date_prochain_paiement) < new Date()
-                          ? 'tenant-detail__value--red'
-                          : ''
-                        }`}>
-                        {new Date(o.date_prochain_paiement).toLocaleDateString('fr-CA')}
+                      <span className={`tenant-detail__value ${
+                        new Date(o.date_prochain_paiement) < new Date()
+                          ? 'tenant-detail__value--red' : ''
+                      }`}>
+                        {new Date(o.date_prochain_paiement).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    <div className="tenant-detail">
+                      <span className="tenant-detail__label">Entrée</span>
+                      <span className="tenant-detail__value">
+                        {new Date(o.date_debut_contrat).toLocaleDateString('fr-FR')}
                       </span>
                     </div>
                   </div>
@@ -136,15 +193,22 @@ const TenantManagement: React.FC = () => {
                   <div className="tenant-card__actions">
                     <button
                       className="g-btn g-btn--outline tenant-btn"
-                      onClick={() => history.push(`/ajouter-locataire`, { tenant: o })}
+                      onClick={() => handleContrat(o.id)}
+                      title="Télécharger le contrat PDF"
                     >
-                      ✏️ Modifier
+                      📄 Contrat
+                    </button>
+                    <button
+                      className="g-btn g-btn--outline tenant-btn"
+                      onClick={() => handleLiberer(o.id, o.nom_complet)}
+                    >
+                      🚪 Libérer
                     </button>
                     <button
                       className="g-btn g-btn--danger tenant-btn"
-                      onClick={() => handleDelete(o.id)}
+                      onClick={() => handleDelete(o.id, o.nom_complet)}
                     >
-                      🗑 Supprimer
+                      🗑
                     </button>
                   </div>
                 </div>
