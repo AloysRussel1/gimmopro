@@ -1,96 +1,82 @@
 @import './theme.css';
 
-.pay-content { --background: var(--g-bg); }
+.tenant-form-content { --background: var(--g-bg); }
 
-.pay-list { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.tf-wrap { padding: 16px 16px 88px; }
 
-.pay-card {
-  background: var(--g-surface);
-  border: 1px solid var(--g-border);
-  border-radius: var(--g-radius);
-  padding: 18px;
-  display: flex; flex-direction: column; gap: 12px;
+.tf-step-label {
+  font-size: 11px; color: var(--g-gold);
+  font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; margin: 12px 0 20px;
 }
+.tf-optional { color: var(--g-text-3); font-weight: 400; text-transform: none; letter-spacing: 0; }
 
-.pay-card__head { display: flex; align-items: center; gap: 12px; }
-.pay-avatar {
-  width: 42px; height: 42px;
-  background: var(--g-surface-2);
-  border: 1px solid var(--g-border-bright);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 700;
-  color: var(--g-text-2); flex-shrink: 0;
-}
-.pay-card__info { flex: 1; min-width: 0; }
-.pay-card__name {
-  font-weight: 600; font-size: 15px; color: var(--g-text) !important;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.pay-card__loyer { font-size: 12px; color: var(--g-gold); margin-top: 2px; }
-
-.pay-last {
-  background: var(--g-surface-2);
-  border-radius: var(--g-radius-sm);
-  padding: 10px 14px;
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  flex-wrap: wrap;
-}
-.pay-last__label { font-size: 11px; color: var(--g-text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.pay-last__val   { font-size: 12px; color: var(--g-text) !important; font-weight: 600; }
-
-.pay-card__due { display: flex; justify-content: space-between; align-items: center; }
-.pay-due__label { font-size: 12px; color: var(--g-text-3); }
-.pay-due__date  { font-size: 13px; font-weight: 600; color: var(--g-text) !important; }
-.pay-due__date--red { color: var(--g-danger) !important; }
-
-.pay-card__actions { display: flex; gap: 10px; }
-.pay-cta { flex: 1; padding: 10px; font-size: 13px; }
-
-/* Modal */
-.pay-modal {
-  background: var(--g-surface);
-  min-height: 100%;
-  padding: 32px 24px 48px;
-  display: flex; flex-direction: column; gap: 0;
-  overflow-y: auto;
-}
-.pay-modal__head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 6px;
-}
-.pay-modal__title {
-  font-family: var(--font-display);
-  font-size: 24px; font-weight: 600; color: var(--g-text) !important;
-}
-.pay-modal__close {
-  background: var(--g-surface-2); border: 1px solid var(--g-border);
-  color: var(--g-text-2) !important;
-  width: 36px; height: 36px; border-radius: 50%; font-size: 14px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-}
-.pay-modal__tenant {
-  font-size: 14px; color: var(--g-gold); margin-bottom: 24px; font-weight: 500;
+.tf-error {
+  background: var(--g-danger-dim); color: var(--g-danger) !important;
+  border-radius: var(--g-radius-sm); padding: 10px 14px;
+  font-size: 13px; line-height: 1.4; margin-bottom: 16px;
+  border: 1px solid rgba(224,92,92,0.2);
 }
 
-/* Mois selector */
-.pay-mois-row {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-.pay-mois-btn {
-  padding: 8px 14px;
-  border-radius: var(--g-radius-sm);
-  background: var(--g-surface-2);
-  border: 1px solid var(--g-border);
-  color: var(--g-text-2) !important;
-  font-family: var(--font-body);
-  font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.18s;
-}
-.pay-mois-btn--active {
+.tf-section { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+
+/* Info box */
+.tf-info-box {
   background: var(--g-gold-dim);
-  border-color: var(--g-gold);
-  color: var(--g-gold) !important;
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: var(--g-radius-sm);
+  padding: 14px; margin-bottom: 20px;
+  display: flex; flex-direction: column; gap: 4px;
 }
+.tf-info-box p { font-size: 13px; color: var(--g-text) !important; }
+.tf-info-box strong { color: var(--g-gold) !important; }
+.tf-info-note { font-size: 11px; color: var(--g-text-3) !important; margin-top: 6px; }
+
+/* Compartiment selector */
+.tf-comp-list { display: flex; flex-direction: column; gap: 8px; }
+.tf-comp-btn {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm); padding: 12px 14px;
+  cursor: pointer; transition: all 0.18s; text-align: left; width: 100%;
+}
+.tf-comp-btn--active {
+  background: var(--g-gold-dim); border-color: var(--g-gold);
+}
+.tf-comp-btn__nom  { font-size: 14px; font-weight: 600; color: var(--g-text) !important; }
+.tf-comp-btn__type {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--g-text-3);
+  background: var(--g-surface); padding: 3px 8px;
+  border-radius: 6px;
+}
+.tf-comp-btn--active .tf-comp-btn__type { background: var(--g-gold); color: #0A0A0F !important; }
+
+.tf-no-comp {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--g-danger-dim); color: var(--g-danger) !important;
+  border-radius: var(--g-radius-sm); padding: 12px 14px;
+  font-size: 13px; font-weight: 500;
+}
+
+/* Confirmation */
+.tf-confirm {
+  background: var(--g-surface); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); padding: 20px;
+}
+.tf-confirm__title {
+  font-family: var(--font-display); font-size: 18px;
+  color: var(--g-text) !important; margin-bottom: 16px; font-weight: 600;
+}
+.tf-confirm__row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--g-border);
+  gap: 12px;
+}
+.tf-confirm__row:last-child { border-bottom: none; }
+.tf-confirm__key { font-size: 12px; color: var(--g-text-3); flex-shrink: 0; }
+.tf-confirm__val { font-size: 13px; font-weight: 600; color: var(--g-text) !important; text-align: right; }
+
+/* Navigation */
+.tf-nav { display: flex; gap: 12px; margin-top: 12px; }
+.tf-nav .g-btn { flex: 1; }

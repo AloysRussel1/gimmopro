@@ -7,46 +7,47 @@ import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import '../assets/css/AddTenantForm.css';
 
-interface Logement { id: number; nom: string; }
-interface Compartiment { id: number; nom: string; type: string; logement: number; }
+interface Logement     { id: number; nom: string; }
+interface Compartiment { id: number; nom: string; type: string; }
 
 const STEPS = [
   'Informations personnelles',
   'Contact & Identité',
   'Logement & Compartiment',
-  'Contrat & Loyer',
+  'Conditions du bail',
   'Confirmation',
 ];
 
+const TYPE_LABEL: Record<string, string> = {
+  STUDIO: 'Studio', CHAMBRE: 'Chambre',
+  APPARTEMENT: 'Appartement', BOUTIQUE: 'Boutique',
+};
+
 const AddTenantForm: React.FC = () => {
   const history = useHistory();
-  const [step, setStep] = useState(1);
-  const [loading, setSaving] = useState(false);
-  const [error, setError]    = useState('');
+  const [step,    setStep]   = useState(1);
+  const [saving,  setSaving] = useState(false);
+  const [error,   setError]  = useState('');
 
-  const [logements, setLogements]       = useState<Logement[]>([]);
+  const [logements,     setLogements]     = useState<Logement[]>([]);
   const [compartiments, setCompartiments] = useState<Compartiment[]>([]);
 
   const [form, setForm] = useState({
-    nom_complet:           '',
-    email:                 '',
-    telephone:             '',
-    cni:                   '',
-    logement:              '',
-    compartiment:          '',
-    numero_contrat:        '',
-    date_debut_contrat:    '',
-    loyer:                 '',
+    nom_complet:            '',
+    email:                  '',
+    telephone:              '',
+    cni:                    '',
+    logement:               '',
+    compartiment:           '',
+    date_debut_contrat:     '',
+    loyer:                  '',
     date_prochain_paiement: '',
-    statut:                'Actif',
   });
 
-  // Charger les logements
   useEffect(() => {
     axiosInstance.get('logements/').then(r => setLogements(r.data)).catch(console.error);
   }, []);
 
-  // Charger les compartiments libres quand logement change
   useEffect(() => {
     if (!form.logement) { setCompartiments([]); return; }
     axiosInstance.get(`logements/${form.logement}/compartiments/?statut=LIBRE`)
@@ -59,16 +60,15 @@ const AddTenantForm: React.FC = () => {
     setError('');
   };
 
-  const validate = () => {
-    if (step === 1 && !form.nom_complet) return 'Le nom est requis.';
-    if (step === 2 && !form.telephone)   return 'Le téléphone est requis.';
-    if (step === 2 && !form.cni)         return 'Le CNI est requis.';
-    if (step === 3 && !form.logement)    return 'Sélectionnez un logement.';
+  const validate = (): string => {
+    if (step === 1 && !form.nom_complet)  return 'Le nom complet est requis.';
+    if (step === 2 && !form.telephone)    return 'Le téléphone est requis.';
+    if (step === 2 && !form.cni)          return 'Le numéro CNI est requis.';
+    if (step === 3 && !form.logement)     return 'Sélectionnez un logement.';
     if (step === 3 && !form.compartiment) return 'Sélectionnez un compartiment.';
-    if (step === 4 && !form.numero_contrat) return 'Le numéro de contrat est requis.';
-    if (step === 4 && !form.date_debut_contrat) return 'La date de début est requise.';
-    if (step === 4 && !form.loyer) return 'Le loyer est requis.';
-    if (step === 4 && !form.date_prochain_paiement) return 'La date de prochain paiement est requise.';
+    if (step === 4 && !form.date_debut_contrat) return 'La date d\'entrée est requise.';
+    if (step === 4 && !form.loyer)        return 'Le loyer est requis.';
+    if (step === 4 && !form.date_prochain_paiement) return 'La date du prochain paiement est requise.';
     return '';
   };
 
@@ -78,17 +78,19 @@ const AddTenantForm: React.FC = () => {
     setStep(s => s + 1);
   };
 
+  const selectedComp = compartiments.find(c => String(c.id) === form.compartiment);
+  const selectedLog  = logements.find(l => String(l.id) === form.logement);
+
   const handleSubmit = async () => {
     setSaving(true); setError('');
     try {
       await axiosInstance.post('occupants/', {
         nom_complet:            form.nom_complet,
-        email:                  form.email || `${form.telephone}@gimmopro.local`,
+        email:                  form.email || `${form.cni.toLowerCase()}@gimmopro.local`,
         telephone:              form.telephone,
         cni:                    form.cni,
         logement:               parseInt(form.logement),
         compartiment:           parseInt(form.compartiment),
-        numero_contrat:         form.numero_contrat,
         date_debut_contrat:     form.date_debut_contrat,
         loyer:                  parseFloat(form.loyer),
         date_prochain_paiement: form.date_prochain_paiement,
@@ -98,8 +100,10 @@ const AddTenantForm: React.FC = () => {
       history.replace('/locataire');
     } catch (e: any) {
       const data = e?.response?.data;
-      if (data) setError(JSON.stringify(data));
-      else setError('Erreur lors de l\'enregistrement.');
+      if (data?.compartiment) setError(data.compartiment[0] || 'Compartiment invalide.');
+      else if (data?.cni)     setError('Ce numéro CNI existe déjà.');
+      else if (data?.email)   setError('Cet email est déjà utilisé.');
+      else setError('Erreur lors de l\'enregistrement. Vérifiez les informations.');
     } finally {
       setSaving(false);
     }
@@ -117,52 +121,56 @@ const AddTenantForm: React.FC = () => {
 
       <IonContent className="tenant-form-content">
         <div className="tf-wrap">
-          {/* Progress */}
+
           <IonProgressBar value={step / STEPS.length} />
-          <p className="tf-step-label">Étape {step} / {STEPS.length} — {STEPS[step - 1]}</p>
+          <p className="tf-step-label">Étape {step}/{STEPS.length} — {STEPS[step - 1]}</p>
 
-          {error && <p className="tf-error">{error}</p>}
+          {error && <p className="tf-error">⚠ {error}</p>}
 
-          {/* ÉTAPE 1 — Infos personnelles */}
+          {/* ── ÉTAPE 1 — Infos personnelles ── */}
           {step === 1 && (
             <div className="tf-section">
               <div className="g-input-group">
                 <label className="g-label">Nom complet *</label>
                 <input className="g-input" placeholder="Jean Dupont"
-                  value={form.nom_complet} onChange={e => set('nom_complet', e.target.value)} />
+                  value={form.nom_complet}
+                  onChange={e => set('nom_complet', e.target.value)} />
               </div>
               <div className="g-input-group">
-                <label className="g-label">Email (optionnel)</label>
+                <label className="g-label">Email <span className="tf-optional">(optionnel)</span></label>
                 <input className="g-input" type="email" placeholder="jean@email.com"
-                  value={form.email} onChange={e => set('email', e.target.value)} />
+                  value={form.email}
+                  onChange={e => set('email', e.target.value)} />
               </div>
             </div>
           )}
 
-          {/* ÉTAPE 2 — Contact & Identité */}
+          {/* ── ÉTAPE 2 — Contact & Identité ── */}
           {step === 2 && (
             <div className="tf-section">
               <div className="g-input-group">
                 <label className="g-label">Téléphone *</label>
-                <input className="g-input" placeholder="+237 6XX XXX XXX"
-                  value={form.telephone} onChange={e => set('telephone', e.target.value)} />
+                <input className="g-input" placeholder="690 123 456"
+                  value={form.telephone}
+                  onChange={e => set('telephone', e.target.value)} />
               </div>
               <div className="g-input-group">
                 <label className="g-label">Numéro CNI *</label>
-                <input className="g-input" placeholder="CNI123456"
-                  value={form.cni} onChange={e => set('cni', e.target.value)} />
+                <input className="g-input" placeholder="1234567890123"
+                  value={form.cni}
+                  onChange={e => set('cni', e.target.value)} />
               </div>
             </div>
           )}
 
-          {/* ÉTAPE 3 — Logement & Compartiment */}
+          {/* ── ÉTAPE 3 — Logement & Compartiment ── */}
           {step === 3 && (
             <div className="tf-section">
               <div className="g-input-group">
                 <label className="g-label">Logement *</label>
                 <select className="g-input" value={form.logement}
                   onChange={e => { set('logement', e.target.value); set('compartiment', ''); }}>
-                  <option value="">— Sélectionnez un logement —</option>
+                  <option value="">— Choisir un logement —</option>
                   {logements.map(l => (
                     <option key={l.id} value={l.id}>{l.nom}</option>
                   ))}
@@ -171,63 +179,78 @@ const AddTenantForm: React.FC = () => {
 
               {form.logement && (
                 <div className="g-input-group">
-                  <label className="g-label">Compartiment libre *</label>
+                  <label className="g-label">Compartiment disponible *</label>
                   {compartiments.length === 0 ? (
-                    <p className="tf-no-comp">Aucun compartiment libre dans ce logement.</p>
+                    <div className="tf-no-comp">
+                      <span>🔒</span>
+                      <span>Aucun compartiment libre dans ce logement</span>
+                    </div>
                   ) : (
-                    <select className="g-input" value={form.compartiment}
-                      onChange={e => set('compartiment', e.target.value)}>
-                      <option value="">— Sélectionnez un compartiment —</option>
+                    <div className="tf-comp-list">
                       {compartiments.map(c => (
-                        <option key={c.id} value={c.id}>{c.nom} ({c.type})</option>
+                        <button
+                          key={c.id}
+                          className={`tf-comp-btn ${form.compartiment === String(c.id) ? 'tf-comp-btn--active' : ''}`}
+                          onClick={() => set('compartiment', String(c.id))}
+                        >
+                          <span className="tf-comp-btn__nom">{c.nom}</span>
+                          <span className="tf-comp-btn__type">{TYPE_LABEL[c.type] || c.type}</span>
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* ÉTAPE 4 — Contrat */}
+          {/* ── ÉTAPE 4 — Conditions du bail ── */}
           {step === 4 && (
             <div className="tf-section">
-              <div className="g-input-group">
-                <label className="g-label">Numéro de contrat *</label>
-                <input className="g-input" placeholder="CONT-001"
-                  value={form.numero_contrat} onChange={e => set('numero_contrat', e.target.value)} />
+              <div className="tf-info-box">
+                <p>🏠 <strong>{selectedLog?.nom}</strong></p>
+                <p>🚪 {selectedComp?.nom} ({TYPE_LABEL[selectedComp?.type || ''] || selectedComp?.type})</p>
+                <p className="tf-info-note">Le numéro de contrat sera généré automatiquement</p>
               </div>
+
               <div className="g-input-group">
-                <label className="g-label">Date de début du contrat *</label>
+                <label className="g-label">Date d'entrée *</label>
                 <input className="g-input" type="date"
-                  value={form.date_debut_contrat} onChange={e => set('date_debut_contrat', e.target.value)} />
+                  value={form.date_debut_contrat}
+                  onChange={e => set('date_debut_contrat', e.target.value)} />
               </div>
+
               <div className="g-input-group">
-                <label className="g-label">Loyer mensuel *</label>
-                <input className="g-input" type="number" placeholder="50000"
-                  value={form.loyer} onChange={e => set('loyer', e.target.value)} />
+                <label className="g-label">Loyer mensuel (FCFA) *</label>
+                <input className="g-input" type="number" placeholder="50 000"
+                  value={form.loyer}
+                  onChange={e => set('loyer', e.target.value)} />
               </div>
+
               <div className="g-input-group">
                 <label className="g-label">Date du prochain paiement *</label>
                 <input className="g-input" type="date"
-                  value={form.date_prochain_paiement} onChange={e => set('date_prochain_paiement', e.target.value)} />
+                  value={form.date_prochain_paiement}
+                  onChange={e => set('date_prochain_paiement', e.target.value)} />
               </div>
             </div>
           )}
 
-          {/* ÉTAPE 5 — Confirmation */}
+          {/* ── ÉTAPE 5 — Confirmation ── */}
           {step === 5 && (
             <div className="tf-section">
               <div className="tf-confirm">
-                <p className="tf-confirm__title">Récapitulatif</p>
+                <p className="tf-confirm__title">✓ Récapitulatif</p>
                 {[
-                  ['Nom', form.nom_complet],
-                  ['Téléphone', form.telephone],
-                  ['CNI', form.cni],
-                  ['Compartiment', compartiments.find(c => String(c.id) === form.compartiment)?.nom || '—'],
-                  ['Contrat', form.numero_contrat],
-                  ['Loyer', `${form.loyer} / mois`],
-                  ['Début contrat', form.date_debut_contrat],
+                  ['Nom complet',       form.nom_complet],
+                  ['Téléphone',         form.telephone],
+                  ['CNI',               form.cni],
+                  ['Logement',          selectedLog?.nom || '—'],
+                  ['Compartiment',      selectedComp ? `${selectedComp.nom} (${TYPE_LABEL[selectedComp.type]})` : '—'],
+                  ['Date d\'entrée',    form.date_debut_contrat],
+                  ['Loyer',             `${parseFloat(form.loyer || '0').toLocaleString('fr-FR')} FCFA / mois`],
                   ['Prochain paiement', form.date_prochain_paiement],
+                  ['N° Contrat',        '🔄 Généré automatiquement'],
                 ].map(([k, v]) => (
                   <div className="tf-confirm__row" key={k}>
                     <span className="tf-confirm__key">{k}</span>
@@ -241,8 +264,8 @@ const AddTenantForm: React.FC = () => {
           {/* Navigation */}
           <div className="tf-nav">
             {step > 1 && (
-              <button className="g-btn g-btn--outline" onClick={() => setStep(s => s - 1)}>
-                ← Précédent
+              <button className="g-btn g-btn--outline" onClick={() => { setStep(s => s - 1); setError(''); }}>
+                ← Retour
               </button>
             )}
             {step < 5 ? (
@@ -250,8 +273,8 @@ const AddTenantForm: React.FC = () => {
                 Suivant →
               </button>
             ) : (
-              <button className="g-btn g-btn--primary" onClick={handleSubmit} disabled={loading}>
-                {loading ? 'Enregistrement…' : '✓ Confirmer'}
+              <button className="g-btn g-btn--primary" onClick={handleSubmit} disabled={saving}>
+                {saving ? '⏳ Enregistrement…' : '✓ Confirmer'}
               </button>
             )}
           </div>
