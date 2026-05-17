@@ -2,6 +2,7 @@
 
 .logement-details-content { --background: var(--g-bg); }
 
+/* Header logement */
 .ld-header {
   background: linear-gradient(135deg, #1A1710 0%, #13120D 100%);
   border: 1px solid rgba(201,168,76,0.2);
@@ -12,88 +13,85 @@
 .ld-header__name {
   font-family: var(--font-display);
   font-size: 22px; font-weight: 600;
-  color: var(--g-text);
-  margin-bottom: 8px;
+  color: var(--g-text) !important; margin-bottom: 4px;
 }
-.ld-header__loc {
-  font-size: 13px; color: var(--g-gold);
-  margin-bottom: 4px;
-}
-.ld-header__desc {
-  font-size: 13px; color: var(--g-text-2);
-  line-height: 1.5;
-}
+.ld-header__loc { font-size: 13px; color: var(--g-gold); margin-bottom: 14px; }
 
-.ld-controls {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 16px;
+/* Stats mini */
+.ld-stats { display: flex; gap: 12px; }
+.ld-stat {
+  flex: 1; background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  padding: 10px; text-align: center;
 }
+.ld-stat--green { border-color: rgba(76,175,125,0.3); }
+.ld-stat--gold  { border-color: rgba(201,168,76,0.3); }
+.ld-stat__val   { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--g-text) !important; }
+.ld-stat__label { font-size: 10px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Controls */
+.ld-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .ld-controls ion-searchbar { flex: 1; }
 .ld-add-btn {
-  background: var(--g-gold);
-  color: #0A0A0F;
-  border: none;
-  border-radius: var(--g-radius-sm);
-  padding: 10px 14px;
-  font-family: var(--font-body);
-  font-size: 13px; font-weight: 700;
-  white-space: nowrap; cursor: pointer;
+  background: var(--g-gold); color: #0A0A0F;
+  border: none; border-radius: var(--g-radius-sm);
+  padding: 10px 14px; font-family: var(--font-body);
+  font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer;
 }
-.ld-add-btn:active { background: var(--g-gold-light); }
 
 .ld-filter {
-  background: var(--g-surface-2);
+  background: var(--g-surface-2) !important;
   border: 1px solid var(--g-border);
   border-radius: var(--g-radius-sm);
-  color: var(--g-text);
-  font-family: var(--font-body);
-  font-size: 13px;
-  padding: 10px 12px;
-  width: 100%;
-  margin-bottom: 16px;
-  outline: none;
+  color: var(--g-text) !important;
+  font-family: var(--font-body); font-size: 13px;
+  padding: 10px 12px; width: 100%; margin-bottom: 16px; outline: none;
 }
 
-.ld-list { display: flex; flex-direction: column; gap: 12px; }
+/* Card compartiment */
+.ld-list  { display: flex; flex-direction: column; gap: 14px; }
+.ld-card  { background: var(--g-surface); border: 1px solid var(--g-border); border-radius: var(--g-radius); padding: 16px; }
 
-.ld-card {
-  background: var(--g-surface);
-  border: 1px solid var(--g-border);
-  border-radius: var(--g-radius);
-  padding: 16px;
+.ld-card__head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.ld-card__name { font-weight: 600; font-size: 16px; color: var(--g-text) !important; }
+.ld-card__type { font-size: 11px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+/* Pièces */
+.ld-rooms { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ld-room-pill {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; color: var(--g-text-2) !important;
 }
-.ld-card__head {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 12px;
+
+/* Occupant actuel */
+.ld-occupant {
+  background: var(--g-surface-2);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--g-radius-sm);
+  padding: 12px 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; margin-bottom: 12px;
 }
-.ld-card__name {
-  font-weight: 600; font-size: 16px; color: var(--g-text);
+.ld-occupant__info { flex: 1; min-width: 0; }
+.ld-occupant__name { font-weight: 600; font-size: 14px; color: var(--g-text) !important; margin-bottom: 2px; }
+.ld-occupant__detail { font-size: 12px; color: var(--g-text-2); margin-bottom: 2px; }
+.ld-occupant__next  { font-size: 11px; color: var(--g-text-3); }
+.ld-retard { color: var(--g-danger) !important; font-weight: 700; }
+.ld-actif  { color: var(--g-success) !important; font-weight: 700; }
+.ld-liberer-btn { width: auto !important; padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
+
+/* Libre */
+.ld-libre-msg {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; margin-bottom: 12px;
+  border-top: 1px solid var(--g-border);
+  border-bottom: 1px solid var(--g-border);
 }
-.ld-card__type {
-  font-size: 12px; color: var(--g-text-3);
-  margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em;
-}
-.ld-card__body {
-  display: flex; flex-direction: column; gap: 6px;
-  margin-bottom: 14px;
-}
-.ld-card__row {
-  display: flex; justify-content: space-between;
-}
-.ld-card__key   { font-size: 12px; color: var(--g-text-3); }
-.ld-card__val   { font-size: 13px; font-weight: 600; color: var(--g-text); }
+.ld-libre-msg span { font-size: 13px; color: var(--g-success); font-weight: 500; }
+.ld-assign-btn { width: auto !important; padding: 8px 14px; font-size: 12px; }
+
+/* Actions */
 .ld-card__actions { display: flex; gap: 8px; }
 .ld-btn { flex: 1; padding: 9px; font-size: 12px; }
-
-/* Rooms pills */
-.ld-rooms {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.ld-room-pill {
-  background: var(--g-surface-2);
-  border: 1px solid var(--g-border);
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 11px; color: var(--g-text-2);
-}

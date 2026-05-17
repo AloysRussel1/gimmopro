@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
-  IonModal, IonSearchbar,
+  IonPage, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonModal, IonSearchbar,
 } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import '../assets/css/PaymentManagement.css';
-
-interface Paiement {
-  id: number;
-  occupant: number;
-  occupant_nom: string;
-  montant_verse: string;
-  date_paiement: string;
-  date_prochain_paiement: string;
-  statut: string;
-}
 
 interface Occupant {
   id: number;
@@ -22,17 +13,38 @@ interface Occupant {
   loyer: string;
   statut: string;
   date_prochain_paiement: string;
+  compartiment_nom: string;
+  logement_nom: string;
+}
+
+interface Paiement {
+  id: number;
+  occupant: number;
+  occupant_nom: string;
+  montant_verse: string;
+  nombre_mois: number;
+  date_paiement: string;
+  date_debut_periode: string;
+  date_fin_periode: string;
+  statut: string;
 }
 
 const PaymentManagement: React.FC = () => {
-  const [occupants, setOccupants] = useState<Occupant[]>([]);
-  const [paiements, setPaiements] = useState<Paiement[]>([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [selected, setSelected] = useState<Occupant | null>(null);
-  const [form, setForm] = useState({ montant: '', date: '', next_date: '' });
-  const [saving, setSaving] = useState(false);
+  const history = useHistory();
+  const [occupants,  setOccupants]  = useState<Occupant[]>([]);
+  const [paiements,  setPaiements]  = useState<Paiement[]>([]);
+  const [search,     setSearch]     = useState('');
+  const [loading,    setLoading]    = useState(true);
+  const [showModal,  setShowModal]  = useState(false);
+  const [selected,   setSelected]   = useState<Occupant | null>(null);
+  const [saving,     setSaving]     = useState(false);
+  const [form, setForm] = useState({
+    nombre_mois: '1',
+    montant: '',
+    date_debut: '',
+    date_paiement: new Date().toISOString().split('T')[0],
+    note: '',
+  });
 
   useEffect(() => {
     Promise.all([
@@ -46,32 +58,53 @@ const PaymentManagement: React.FC = () => {
   }, []);
 
   const filtered = occupants.filter(o =>
-    o.nom_complet.toLowerCase().includes(search.toLowerCase())
+    o.nom_complet.toLowerCase().includes(search.toLowerCase()) ||
+    (o.compartiment_nom || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const lastPaiement = (occupantId: number) =>
-    paiements.find(p => p.occupant === occupantId);
+  const lastPaiement = (id: number) => paiements.find(p => p.occupant === id);
 
   const openModal = (o: Occupant) => {
     setSelected(o);
-    setForm({ montant: o.loyer, date: new Date().toISOString().split('T')[0], next_date: '' });
+    const loyer = parseFloat(o.loyer);
+    setForm({
+      nombre_mois:   '1',
+      montant:       String(loyer),
+      date_debut:    o.date_prochain_paiement,
+      date_paiement: new Date().toISOString().split('T')[0],
+      note:          '',
+    });
     setShowModal(true);
   };
 
+  const updateMois = (nb: string) => {
+    const n     = parseInt(nb) || 1;
+    const loyer = selected ? parseFloat(selected.loyer) : 0;
+    setForm(f => ({ ...f, nombre_mois: String(n), montant: String(loyer * n) }));
+  };
+
   const handleSave = async () => {
-    if (!selected || !form.montant || !form.date || !form.next_date) return;
+    if (!selected) return;
     setSaving(true);
     try {
       const res = await axiosInstance.post('paiements/', {
-        occupant: selected.id,
-        montant_verse: form.montant,
-        date_paiement: form.date,
-        date_prochain_paiement: form.next_date,
+        occupant:           selected.id,
+        montant_verse:      parseFloat(form.montant),
+        nombre_mois:        parseInt(form.nombre_mois),
+        date_paiement:      form.date_paiement,
+        date_debut_periode: form.date_debut,
+        note:               form.note,
       });
       setPaiements(prev => [res.data, ...prev]);
+      // Mettre à jour l'occupant dans la liste
+      setOccupants(prev => prev.map(o =>
+        o.id === selected.id
+          ? { ...o, date_prochain_paiement: res.data.date_fin_periode, statut: 'Actif' }
+          : o
+      ));
       setShowModal(false);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.error(e?.response?.data || e);
     } finally {
       setSaving(false);
     }
@@ -81,7 +114,9 @@ const PaymentManagement: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle className="pay-title">Paiements</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
+            Paiements
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
 
@@ -95,9 +130,7 @@ const PaymentManagement: React.FC = () => {
           />
 
           {loading ? (
-            <div className="pay-loading">
-              <div className="pay-spinner" />
-            </div>
+            <div className="g-loading"><div className="g-spinner" /></div>
           ) : filtered.length === 0 ? (
             <div className="g-empty g-animate">
               <div className="g-empty__icon">💳</div>
@@ -106,13 +139,10 @@ const PaymentManagement: React.FC = () => {
           ) : (
             <div className="pay-list">
               {filtered.map((o, i) => {
-                const last = lastPaiement(o.id);
+                const last    = lastPaiement(o.id);
                 const overdue = new Date(o.date_prochain_paiement) < new Date();
                 return (
-                  <div
-                    key={o.id}
-                    className={`pay-card g-animate g-animate--${Math.min(i + 1, 5)}`}
-                  >
+                  <div key={o.id} className={`pay-card g-animate g-animate--${Math.min(i+1,5)}`}>
                     <div className="pay-card__head">
                       <div className="pay-avatar">
                         {o.nom_complet.charAt(0).toUpperCase()}
@@ -120,7 +150,8 @@ const PaymentManagement: React.FC = () => {
                       <div className="pay-card__info">
                         <p className="pay-card__name">{o.nom_complet}</p>
                         <p className="pay-card__loyer">
-                          {parseFloat(o.loyer).toLocaleString('fr-CA')} $ / mois
+                          {parseFloat(o.loyer).toLocaleString('fr-CA')} / mois
+                          {o.compartiment_nom && ` · ${o.compartiment_nom}`}
                         </p>
                       </div>
                       <span className={`g-badge ${overdue ? 'g-badge--red' : 'g-badge--green'}`}>
@@ -132,8 +163,8 @@ const PaymentManagement: React.FC = () => {
                       <div className="pay-last">
                         <span className="pay-last__label">Dernier paiement</span>
                         <span className="pay-last__val">
-                          {parseFloat(last.montant_verse).toLocaleString('fr-CA')} $
-                          &nbsp;·&nbsp;
+                          {parseFloat(last.montant_verse).toLocaleString('fr-CA')} ·{' '}
+                          {last.nombre_mois} mois ·{' '}
                           {new Date(last.date_paiement).toLocaleDateString('fr-CA')}
                         </span>
                       </div>
@@ -146,12 +177,17 @@ const PaymentManagement: React.FC = () => {
                       </span>
                     </div>
 
-                    <button
-                      className="g-btn g-btn--primary pay-cta"
-                      onClick={() => openModal(o)}
-                    >
-                      + Enregistrer un paiement
-                    </button>
+                    <div className="pay-card__actions">
+                      <button className="g-btn g-btn--primary pay-cta" onClick={() => openModal(o)}>
+                        + Enregistrer paiement
+                      </button>
+                      <button
+                        className="g-btn g-btn--outline pay-cta"
+                        onClick={() => history.push(`/historique/${o.id}`)}
+                      >
+                        Historique
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -159,7 +195,7 @@ const PaymentManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Modal */}
+        {/* Modal paiement */}
         <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
           <div className="pay-modal">
             <div className="pay-modal__head">
@@ -168,43 +204,69 @@ const PaymentManagement: React.FC = () => {
             </div>
 
             {selected && (
-              <p className="pay-modal__tenant">{selected.nom_complet}</p>
+              <p className="pay-modal__tenant">
+                {selected.nom_complet}
+                {selected.compartiment_nom && ` · ${selected.compartiment_nom}`}
+              </p>
             )}
 
             <div className="g-input-group">
-              <label className="g-label">Montant versé ($)</label>
+              <label className="g-label">Nombre de mois</label>
+              <div className="pay-mois-row">
+                {[1, 2, 3, 6, 12].map(n => (
+                  <button
+                    key={n}
+                    className={`pay-mois-btn ${form.nombre_mois === String(n) ? 'pay-mois-btn--active' : ''}`}
+                    onClick={() => updateMois(String(n))}
+                  >
+                    {n} mois
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="g-input-group">
+              <label className="g-label">Montant total</label>
               <input
                 className="g-input"
                 type="number"
                 value={form.montant}
-                onChange={e => setForm({ ...form, montant: e.target.value })}
-              />
-            </div>
-            <div className="g-input-group">
-              <label className="g-label">Date de paiement</label>
-              <input
-                className="g-input"
-                type="date"
-                value={form.date}
-                onChange={e => setForm({ ...form, date: e.target.value })}
-              />
-            </div>
-            <div className="g-input-group">
-              <label className="g-label">Prochain paiement</label>
-              <input
-                className="g-input"
-                type="date"
-                value={form.next_date}
-                onChange={e => setForm({ ...form, next_date: e.target.value })}
+                onChange={e => setForm(f => ({ ...f, montant: e.target.value }))}
               />
             </div>
 
-            <button
-              className="g-btn g-btn--primary"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Enregistrement…' : 'Confirmer'}
+            <div className="g-input-group">
+              <label className="g-label">Début de la période couverte</label>
+              <input
+                className="g-input"
+                type="date"
+                value={form.date_debut}
+                onChange={e => setForm(f => ({ ...f, date_debut: e.target.value }))}
+              />
+            </div>
+
+            <div className="g-input-group">
+              <label className="g-label">Date du paiement</label>
+              <input
+                className="g-input"
+                type="date"
+                value={form.date_paiement}
+                onChange={e => setForm(f => ({ ...f, date_paiement: e.target.value }))}
+              />
+            </div>
+
+            <div className="g-input-group">
+              <label className="g-label">Note (optionnel)</label>
+              <input
+                className="g-input"
+                placeholder="Ex: paiement en espèces"
+                value={form.note}
+                onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+              />
+            </div>
+
+            <button className="g-btn g-btn--primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Enregistrement…' : '✓ Confirmer le paiement'}
             </button>
           </div>
         </IonModal>

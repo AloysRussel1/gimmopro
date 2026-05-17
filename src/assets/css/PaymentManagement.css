@@ -1,19 +1,6 @@
 @import './theme.css';
 
 .pay-content { --background: var(--g-bg); }
-.pay-title { font-family: var(--font-display); font-size: 20px; }
-
-.pay-loading {
-  display: flex; justify-content: center; padding: 60px 0;
-}
-.pay-spinner {
-  width: 32px; height: 32px;
-  border: 2px solid var(--g-border);
-  border-top-color: var(--g-gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .pay-list { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
 
@@ -25,9 +12,7 @@
   display: flex; flex-direction: column; gap: 12px;
 }
 
-.pay-card__head {
-  display: flex; align-items: center; gap: 12px;
-}
+.pay-card__head { display: flex; align-items: center; gap: 12px; }
 .pay-avatar {
   width: 42px; height: 42px;
   background: var(--g-surface-2);
@@ -40,7 +25,7 @@
 }
 .pay-card__info { flex: 1; min-width: 0; }
 .pay-card__name {
-  font-weight: 600; font-size: 15px; color: var(--g-text);
+  font-weight: 600; font-size: 15px; color: var(--g-text) !important;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pay-card__loyer { font-size: 12px; color: var(--g-gold); margin-top: 2px; }
@@ -49,26 +34,27 @@
   background: var(--g-surface-2);
   border-radius: var(--g-radius-sm);
   padding: 10px 14px;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  flex-wrap: wrap;
 }
-.pay-last__label { font-size: 11px; color: var(--g-text-3); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
-.pay-last__val   { font-size: 13px; color: var(--g-text); font-weight: 600; }
+.pay-last__label { font-size: 11px; color: var(--g-text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.pay-last__val   { font-size: 12px; color: var(--g-text) !important; font-weight: 600; }
 
-.pay-card__due {
-  display: flex; justify-content: space-between; align-items: center;
-}
+.pay-card__due { display: flex; justify-content: space-between; align-items: center; }
 .pay-due__label { font-size: 12px; color: var(--g-text-3); }
-.pay-due__date  { font-size: 13px; font-weight: 600; color: var(--g-text); }
-.pay-due__date--red { color: var(--g-danger); }
+.pay-due__date  { font-size: 13px; font-weight: 600; color: var(--g-text) !important; }
+.pay-due__date--red { color: var(--g-danger) !important; }
 
-.pay-cta { margin-top: 4px; }
+.pay-card__actions { display: flex; gap: 10px; }
+.pay-cta { flex: 1; padding: 10px; font-size: 13px; }
 
 /* Modal */
 .pay-modal {
   background: var(--g-surface);
   min-height: 100%;
-  padding: 32px 24px;
+  padding: 32px 24px 48px;
   display: flex; flex-direction: column; gap: 0;
+  overflow-y: auto;
 }
 .pay-modal__head {
   display: flex; justify-content: space-between; align-items: center;
@@ -76,17 +62,35 @@
 }
 .pay-modal__title {
   font-family: var(--font-display);
-  font-size: 24px; font-weight: 600; color: var(--g-text);
+  font-size: 24px; font-weight: 600; color: var(--g-text) !important;
 }
 .pay-modal__close {
-  background: var(--g-surface-2);
-  border: 1px solid var(--g-border);
-  color: var(--g-text-2);
-  width: 36px; height: 36px;
-  border-radius: 50%; font-size: 14px;
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  color: var(--g-text-2) !important;
+  width: 36px; height: 36px; border-radius: 50%; font-size: 14px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .pay-modal__tenant {
-  font-size: 14px; color: var(--g-gold);
-  margin-bottom: 28px; font-weight: 500;
+  font-size: 14px; color: var(--g-gold); margin-bottom: 24px; font-weight: 500;
+}
+
+/* Mois selector */
+.pay-mois-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.pay-mois-btn {
+  padding: 8px 14px;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-surface-2);
+  border: 1px solid var(--g-border);
+  color: var(--g-text-2) !important;
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+}
+.pay-mois-btn--active {
+  background: var(--g-gold-dim);
+  border-color: var(--g-gold);
+  color: var(--g-gold) !important;
 }

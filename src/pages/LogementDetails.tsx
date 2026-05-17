@@ -7,21 +7,27 @@ import { useHistory, useParams } from 'react-router-dom';
 import axiosInstance from './../api/axiosConfig';
 import './../assets/css/LogementDetails.css';
 
+interface OccupantMini {
+  id: number; nom_complet: string; telephone: string;
+  loyer: string; date_prochain_paiement: string; statut: string;
+}
 interface Compartiment {
-  id: number; type: string; nom: string;
-  statut: string; occupant: string | null; logement: number;
-  chambres: number; salons: number; douches: number; cuisines: number;
+  id: number; type: string; nom: string; statut: string;
+  logement: number; chambres: number; salons: number;
+  douches: number; cuisines: number;
+  occupant_actuel: OccupantMini | null;
 }
 interface Logement {
   id: number; nom: string; localisation: string; description: string;
+  nb_compartiments: number; nb_occupes: number; nb_libres: number;
 }
 
 const LogementDetailsPage: React.FC = () => {
-  const [search, setSearch]           = useState('');
-  const [filter, setFilter]           = useState('Tous');
+  const [search,        setSearch]        = useState('');
+  const [filter,        setFilter]        = useState('Tous');
   const [compartiments, setCompartiments] = useState<Compartiment[]>([]);
-  const [logement, setLogement]       = useState<Logement | null>(null);
-  const [loading, setLoading]         = useState(true);
+  const [logement,      setLogement]      = useState<Logement | null>(null);
+  const [loading,       setLoading]       = useState(true);
   const history = useHistory();
   const { id }  = useParams<{ id: string }>();
 
@@ -49,12 +55,20 @@ const LogementDetailsPage: React.FC = () => {
     setCompartiments(prev => prev.filter(c => c.id !== cid));
   };
 
+  const handleLiberer = async (occupantId: number, nom: string) => {
+    if (!window.confirm(`Confirmer le départ de ${nom} ?`)) return;
+    await axiosInstance.post(`occupants/${occupantId}/liberer/`);
+    // Rafraîchir les compartiments
+    const res = await axiosInstance.get(`logements/${id}/compartiments/`);
+    setCompartiments(res.data);
+  };
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }}>
-            Détails
+            {logement?.nom || 'Logement'}
           </IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -62,14 +76,25 @@ const LogementDetailsPage: React.FC = () => {
       <IonContent className="logement-details-content">
         <div className="g-page">
 
-          {/* Logement info */}
+          {/* Stats logement */}
           {logement && (
             <div className="ld-header g-animate">
               <p className="ld-header__name">{logement.nom}</p>
               <p className="ld-header__loc">📍 {logement.localisation}</p>
-              {logement.description && (
-                <p className="ld-header__desc">{logement.description}</p>
-              )}
+              <div className="ld-stats">
+                <div className="ld-stat">
+                  <span className="ld-stat__val">{logement.nb_compartiments}</span>
+                  <span className="ld-stat__label">Total</span>
+                </div>
+                <div className="ld-stat ld-stat--green">
+                  <span className="ld-stat__val">{logement.nb_libres}</span>
+                  <span className="ld-stat__label">Libres</span>
+                </div>
+                <div className="ld-stat ld-stat--gold">
+                  <span className="ld-stat__val">{logement.nb_occupes}</span>
+                  <span className="ld-stat__label">Occupés</span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -88,11 +113,8 @@ const LogementDetailsPage: React.FC = () => {
             </button>
           </div>
 
-          <select
-            className="ld-filter g-animate g-animate--1"
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-          >
+          <select className="ld-filter g-animate g-animate--1"
+            value={filter} onChange={e => setFilter(e.target.value)}>
             <option value="Tous">Tous les types</option>
             <option value="APPARTEMENT">Appartement</option>
             <option value="STUDIO">Studio</option>
@@ -101,9 +123,7 @@ const LogementDetailsPage: React.FC = () => {
           </select>
 
           {loading ? (
-            <div className="logement-loading">
-              <div className="logement-spinner" />
-            </div>
+            <div className="g-loading"><div className="g-spinner" /></div>
           ) : filtered.length === 0 ? (
             <div className="g-empty g-animate">
               <div className="g-empty__icon">🏘️</div>
@@ -113,6 +133,7 @@ const LogementDetailsPage: React.FC = () => {
             <div className="ld-list">
               {filtered.map((c, i) => (
                 <div key={c.id} className={`ld-card g-animate g-animate--${Math.min(i+1,5)}`}>
+                  {/* Header compartiment */}
                   <div className="ld-card__head">
                     <div>
                       <p className="ld-card__name">{c.nom}</p>
@@ -123,31 +144,56 @@ const LogementDetailsPage: React.FC = () => {
                     </span>
                   </div>
 
+                  {/* Pièces */}
                   <div className="ld-rooms">
-                    {c.chambres > 0 && <span className="ld-room-pill">🛏 {c.chambres} chambre{c.chambres > 1 ? 's' : ''}</span>}
-                    {c.salons   > 0 && <span className="ld-room-pill">🛋 {c.salons} salon{c.salons > 1 ? 's' : ''}</span>}
-                    {c.douches  > 0 && <span className="ld-room-pill">🚿 {c.douches} douche{c.douches > 1 ? 's' : ''}</span>}
-                    {c.cuisines > 0 && <span className="ld-room-pill">🍳 {c.cuisines} cuisine{c.cuisines > 1 ? 's' : ''}</span>}
+                    {c.chambres > 0 && <span className="ld-room-pill">🛏 {c.chambres}</span>}
+                    {c.salons   > 0 && <span className="ld-room-pill">🛋 {c.salons}</span>}
+                    {c.douches  > 0 && <span className="ld-room-pill">🚿 {c.douches}</span>}
+                    {c.cuisines > 0 && <span className="ld-room-pill">🍳 {c.cuisines}</span>}
                   </div>
 
-                  <div className="ld-card__body">
-                    <div className="ld-card__row">
-                      <span className="ld-card__key">Occupant</span>
-                      <span className="ld-card__val">{c.occupant || '—'}</span>
+                  {/* Occupant actuel */}
+                  {c.occupant_actuel ? (
+                    <div className="ld-occupant">
+                      <div className="ld-occupant__info">
+                        <p className="ld-occupant__name">{c.occupant_actuel.nom_complet}</p>
+                        <p className="ld-occupant__detail">
+                          {parseFloat(c.occupant_actuel.loyer).toLocaleString('fr-CA')} / mois ·{' '}
+                          <span className={c.occupant_actuel.statut === 'En retard' ? 'ld-retard' : 'ld-actif'}>
+                            {c.occupant_actuel.statut}
+                          </span>
+                        </p>
+                        <p className="ld-occupant__next">
+                          Prochain paiement : {new Date(c.occupant_actuel.date_prochain_paiement).toLocaleDateString('fr-CA')}
+                        </p>
+                      </div>
+                      <button
+                        className="g-btn g-btn--danger ld-liberer-btn"
+                        onClick={() => handleLiberer(c.occupant_actuel!.id, c.occupant_actuel!.nom_complet)}
+                      >
+                        Libérer
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="ld-libre-msg">
+                      <span>Compartiment libre</span>
+                      <button
+                        className="g-btn g-btn--primary ld-assign-btn"
+                        onClick={() => history.push('/ajouter-locataire')}
+                      >
+                        + Assigner
+                      </button>
+                    </div>
+                  )}
 
+                  {/* Actions */}
                   <div className="ld-card__actions">
-                    <button
-                      className="g-btn g-btn--outline ld-btn"
-                      onClick={() => history.push(`/compartiment/${c.id}`)}
-                    >
+                    <button className="g-btn g-btn--outline ld-btn"
+                      onClick={() => history.push(`/compartiment/${c.id}`)}>
                       Détails
                     </button>
-                    <button
-                      className="g-btn g-btn--danger ld-btn"
-                      onClick={() => handleDelete(c.id)}
-                    >
+                    <button className="g-btn g-btn--danger ld-btn"
+                      onClick={() => handleDelete(c.id)}>
                       🗑
                     </button>
                   </div>
