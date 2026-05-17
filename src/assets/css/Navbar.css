@@ -62,4 +62,80 @@
 /* Push page content above tab bar */
 ion-content {
   --padding-bottom: 76px !important;
+}@import './theme.css';
+
+.g-tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 68px;
+  background: var(--g-surface);
+  border-top: 1px solid var(--g-border);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+  backdrop-filter: blur(12px);
 }
+
+.g-tab {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; flex: 1; padding: 8px 0;
+  background: none; border: none; cursor: pointer;
+  position: relative; transition: opacity 0.18s;
+}
+.g-tab:active { opacity: 0.7; }
+
+.g-tab__icon  { font-size: 20px; transition: transform 0.2s; }
+.g-tab--active .g-tab__icon { transform: scale(1.15); }
+
+.g-tab__label {
+  font-family: var(--font-body); font-size: 9px;
+  font-weight: 600; letter-spacing: 0.04em;
+  color: var(--g-text-3) !important; transition: color 0.18s;
+}
+.g-tab--active .g-tab__label { color: var(--g-gold) !important; }
+
+.g-tab__dot {
+  position: absolute; top: 4px;
+  width: 4px; height: 4px;
+  background: var(--g-gold); border-radius: 50%;
+}
+
+/* Logout tab */
+.g-tab--logout .g-tab__label { color: var(--g-danger) !important; opacity: 0.7; }
+.g-tab--logout:active { opacity: 0.5; }
+
+/* Overlay confirmation */
+.logout-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.logout-modal {
+  width: 100%;
+  background: var(--g-surface);
+  border-top: 1px solid var(--g-border);
+  border-radius: var(--g-radius-lg) var(--g-radius-lg) 0 0;
+  padding: 28px 24px 40px;
+  animation: slideUp 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.logout-modal__title {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 600;
+  color: var(--g-text) !important; margin-bottom: 8px;
+}
+.logout-modal__sub {
+  font-size: 14px; color: var(--g-text-2);
+  margin-bottom: 24px; line-height: 1.4;
+}
+.logout-modal__actions { display: flex; gap: 12px; }
+.logout-modal__actions .g-btn { flex: 1; }
+
+/* Push content above tab bar */
+ion-content { --padding-bottom: 80px !important; }
