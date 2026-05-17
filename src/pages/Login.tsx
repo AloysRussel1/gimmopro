@@ -5,10 +5,11 @@ import axiosInstance from '../api/axiosConfig';
 import '../assets/css/Login.css';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [username,  setUsername]  = useState('');
+  const [password,  setPassword]  = useState('');
+  const [showPass,  setShowPass]  = useState(false);
+  const [error,     setError]     = useState('');
+  const [loading,   setLoading]   = useState(false);
   const history = useHistory();
 
   const handleLogin = async () => {
@@ -20,7 +21,7 @@ const Login: React.FC = () => {
       localStorage.setItem('refresh_token', res.data.refresh);
       history.replace('/dashboard');
     } catch {
-      setError('Identifiants incorrects. Vérifiez votre nom d\'utilisateur et mot de passe.');
+      setError('Identifiants incorrects.');
     } finally {
       setLoading(false);
     }
@@ -43,11 +44,11 @@ const Login: React.FC = () => {
 
           <div className="login-form g-animate g-animate--2">
             <div className="g-input-group">
-              <label className="g-label">Nom d'utilisateur</label>
+              <label className="g-label">Nom d'utilisateur ou Email</label>
               <input
                 className="g-input"
                 type="text"
-                placeholder="Votre identifiant"
+                placeholder="Identifiant ou email"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoCapitalize="none"
@@ -57,14 +58,24 @@ const Login: React.FC = () => {
 
             <div className="g-input-group">
               <label className="g-label">Mot de passe</label>
-              <input
-                className="g-input"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              />
+              <div className="login-pass-wrap">
+                <input
+                  className="g-input login-pass-input"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                />
+                <button
+                  className="login-eye"
+                  type="button"
+                  onClick={() => setShowPass(s => !s)}
+                  tabIndex={-1}
+                >
+                  {showPass ? '🙈' : '👁'}
+                </button>
+              </div>
             </div>
 
             {error && <p className="login-error">{error}</p>}
