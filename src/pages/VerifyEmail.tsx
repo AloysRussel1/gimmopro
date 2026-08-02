@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
-import { isAuthenticated } from '../api/auth';
 import '../assets/css/Login.css';
 
 const VerifyEmail: React.FC = () => {
@@ -15,9 +14,18 @@ const VerifyEmail: React.FC = () => {
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     axiosInstance.post('auth/verify-email/confirm/', { token })
-      .then(() => setStatus('success'))
+      .then(res => {
+        // Le compte vient d'être activé : le backend renvoie directement des
+        // JWT pour éviter un aller-retour supplémentaire par l'écran de login.
+        if (res.data?.access && res.data?.refresh) {
+          localStorage.setItem('access_token',  res.data.access);
+          localStorage.setItem('refresh_token', res.data.refresh);
+        }
+        setStatus('success');
+        setTimeout(() => history.replace('/dashboard'), 2000);
+      })
       .catch(() => setStatus('error'));
-  }, [token]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <IonPage>
@@ -35,12 +43,9 @@ const VerifyEmail: React.FC = () => {
             {status === 'success' && (
               <>
                 <p style={{ fontSize: '14px', color: 'var(--g-text-2)', lineHeight: 1.5, marginBottom: '20px' }}>
-                  ✓ Adresse email vérifiée avec succès.
+                  ✓ Adresse email vérifiée avec succès.<br />Redirection vers votre tableau de bord…
                 </p>
-                <button
-                  className="g-btn g-btn--primary"
-                  onClick={() => history.replace(isAuthenticated() ? '/dashboard' : '/login')}
-                >
+                <button className="g-btn g-btn--primary" onClick={() => history.replace('/dashboard')}>
                   Continuer
                 </button>
               </>

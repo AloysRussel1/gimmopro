@@ -10,6 +10,9 @@ const Register: React.FC = () => {
   });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent]       = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
   const history = useHistory();
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,19 +33,31 @@ const Register: React.FC = () => {
 
     setLoading(true); setError('');
     try {
-      const res = await axiosInstance.post('auth/register/', {
+      // Le compte est créé inactif côté backend : pas de JWT à cette étape,
+      // il faut confirmer l'email avant de pouvoir se connecter.
+      await axiosInstance.post('auth/register/', {
         email:    form.email,
         password: form.password,
       });
-      localStorage.setItem('access_token',  res.data.access);
-      localStorage.setItem('refresh_token', res.data.refresh);
-      history.replace('/dashboard');
+      setSent(true);
     } catch (err: any) {
       const data = err?.response?.data;
       if (data?.error) setError(data.error);
       else setError('Erreur lors de la création du compte.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResending(true); setResendMsg('');
+    try {
+      await axiosInstance.post('auth/verify-email/', { email: form.email });
+      setResendMsg('Email renvoyé — pensez à vérifier vos courriers indésirables.');
+    } catch {
+      setResendMsg("Erreur lors du renvoi de l'email.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -57,66 +72,92 @@ const Register: React.FC = () => {
             <span className="login-logo__name">Gimmopro</span>
           </div>
 
-          <p className="login-tagline g-animate g-animate--1">
-            Créez votre compte gratuitement
-          </p>
+          {sent ? (
+            <div className="reg-form g-animate g-animate--2" style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: '15px', color: 'var(--g-text)', fontWeight: 600, marginBottom: '10px' }}>
+                📩 Vérifiez votre boîte de réception
+              </p>
+              <p style={{ fontSize: '13.5px', color: 'var(--g-text-2)', lineHeight: 1.6, marginBottom: '20px' }}>
+                Un email de vérification vient d'être envoyé à <strong>{form.email}</strong>.
+                Cliquez sur le lien qu'il contient pour activer votre compte.
+              </p>
 
-          <div className="reg-form g-animate g-animate--2">
-            <div className="g-input-group">
-              <label className="g-label">Adresse email *</label>
-              <input
-                className="g-input"
-                type="email"
-                placeholder="vous@email.com"
-                value={form.email}
-                onChange={handleChange('email')}
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
+              {resendMsg && <p className="login-tagline" style={{ marginBottom: '12px' }}>{resendMsg}</p>}
+
+              <button className="g-btn g-btn--outline" onClick={handleResend} disabled={resending}>
+                {resending ? 'Envoi…' : "Je n'ai rien reçu — renvoyer l'email"}
+              </button>
+
+              <div className="login-divider"><span>ou</span></div>
+
+              <button className="g-btn g-btn--outline" onClick={() => history.push('/login')}>
+                ← Retour à la connexion
+              </button>
             </div>
+          ) : (
+            <>
+              <p className="login-tagline g-animate g-animate--1">
+                Créez votre compte gratuitement
+              </p>
 
-            <div className="g-input-group">
-              <label className="g-label">Mot de passe *</label>
-              <input
-                className="g-input"
-                type="password"
-                placeholder="Min. 8 caractères"
-                value={form.password}
-                onChange={handleChange('password')}
-              />
-            </div>
+              <div className="reg-form g-animate g-animate--2">
+                <div className="g-input-group">
+                  <label className="g-label">Adresse email *</label>
+                  <input
+                    className="g-input"
+                    type="email"
+                    placeholder="vous@email.com"
+                    value={form.email}
+                    onChange={handleChange('email')}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                  />
+                </div>
 
-            <div className="g-input-group">
-              <label className="g-label">Confirmer le mot de passe *</label>
-              <input
-                className="g-input"
-                type="password"
-                placeholder="Répétez votre mot de passe"
-                value={form.confirm}
-                onChange={handleChange('confirm')}
-                onKeyDown={e => e.key === 'Enter' && handleRegister()}
-              />
-            </div>
+                <div className="g-input-group">
+                  <label className="g-label">Mot de passe *</label>
+                  <input
+                    className="g-input"
+                    type="password"
+                    placeholder="Min. 8 caractères"
+                    value={form.password}
+                    onChange={handleChange('password')}
+                  />
+                </div>
 
-            {error && <p className="login-error">{error}</p>}
+                <div className="g-input-group">
+                  <label className="g-label">Confirmer le mot de passe *</label>
+                  <input
+                    className="g-input"
+                    type="password"
+                    placeholder="Répétez votre mot de passe"
+                    value={form.confirm}
+                    onChange={handleChange('confirm')}
+                    onKeyDown={e => e.key === 'Enter' && handleRegister()}
+                  />
+                </div>
 
-            <button
-              className="g-btn g-btn--primary"
-              onClick={handleRegister}
-              disabled={loading}
-            >
-              {loading ? 'Création…' : 'Créer mon compte'}
-            </button>
+                {error && <p className="login-error">{error}</p>}
 
-            <div className="login-divider"><span>ou</span></div>
+                <button
+                  className="g-btn g-btn--primary"
+                  onClick={handleRegister}
+                  disabled={loading}
+                >
+                  {loading ? 'Création…' : 'Créer mon compte'}
+                </button>
 
-            <button
-              className="g-btn g-btn--outline"
-              onClick={() => history.push('/login')}
-            >
-              J'ai déjà un compte
-            </button>
-          </div>
+                <div className="login-divider"><span>ou</span></div>
+
+                <button
+                  className="g-btn g-btn--outline"
+                  onClick={() => history.push('/login')}
+                >
+                  J'ai déjà un compte
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </IonContent>
     </IonPage>
