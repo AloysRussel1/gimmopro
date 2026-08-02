@@ -4,15 +4,28 @@ import axios from 'axios';
 // En local : GIMMOPRO/gimmopro/.env.local avec VITE_API_URL=http://127.0.0.1:8000/api/
 // En prod  : variable d'environnement VITE_API_URL configurée sur Railway/Vercel.
 // Le fallback ci-dessous évite un écran blanc si la variable est absente
-// (ex: preview build local sans .env) — un `console.warn` signale quand même
+// (ex: preview build local sans .env) — un `console.error` signale quand même
 // qu'on est retombé dessus, pour ne pas masquer un vrai oubli de config.
 const FALLBACK_API_URL = 'http://127.0.0.1:8000/api/';
-const API_URL = import.meta.env.VITE_API_URL || FALLBACK_API_URL;
+const RAW_API_URL = import.meta.env.VITE_API_URL;
 
-if (!import.meta.env.VITE_API_URL) {
-  console.warn(
-    `VITE_API_URL n'est pas défini — utilisation du fallback local ${FALLBACK_API_URL}. ` +
-    "Définis-le dans .env.local (dev) ou dans les variables d'environnement Railway/Vercel (prod)."
+// On valide la FORME de la variable, pas juste sa présence : un copier-coller
+// malheureux du genre "VITE_API_URL = https://..." (la ligne entière du .env,
+// au lieu de juste la valeur) passerait un simple `if (!VITE_API_URL)` sans
+// broncher, puis serait traité comme une URL RELATIVE par le navigateur — les
+// requêtes partiraient silencieusement vers l'origine du frontend au lieu du
+// backend (404/405 très confus à déboguer). On préfère planter fort ici.
+const looksLikeAbsoluteUrl = (v: unknown): v is string =>
+  typeof v === 'string' && /^https?:\/\/\S+$/.test(v.trim());
+
+const API_URL = looksLikeAbsoluteUrl(RAW_API_URL) ? RAW_API_URL.trim() : FALLBACK_API_URL;
+
+if (!looksLikeAbsoluteUrl(RAW_API_URL)) {
+  console.error(
+    `VITE_API_URL est absent ou mal formé (valeur reçue : ${JSON.stringify(RAW_API_URL)}). ` +
+    `Attendu une URL absolue, ex: https://mon-backend.up.railway.app/api/ — ` +
+    `repli sur ${FALLBACK_API_URL}. Les appels API vont échouer tant que la variable ` +
+    "n'est pas corrigée dans le dashboard Vercel/Railway (Settings → Environment Variables)."
   );
 }
 
