@@ -45,6 +45,13 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
+    // Log systématique AVANT tout autre traitement (refresh token, etc.) —
+    // sans ça, une erreur réseau/CORS/500 pouvait finir absorbée par un
+    // catch générique plus haut dans un composant sans jamais apparaître
+    // dans la console, ce qui rendait le diagnostic quasi impossible depuis
+    // le navigateur seul.
+    console.error("Détail de l'erreur API :", error.response?.data || error.message);
+
     const original = error.config;
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
