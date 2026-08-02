@@ -5,7 +5,7 @@
 .tenant-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .tenant-search { flex: 1; }
 .tenant-add-btn {
-  background: var(--g-gold); color: #0A0A0F;
+  background: var(--g-gold); color: var(--g-accent-ink);
   border: none; border-radius: var(--g-radius-sm);
   padding: 10px 16px; font-family: var(--font-body);
   font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer;
@@ -33,7 +33,7 @@
 .tenant-card__head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .tenant-avatar {
   width: 44px; height: 44px; background: var(--g-gold-dim);
-  border: 1px solid rgba(201,168,76,0.3); border-radius: 12px;
+  border: 1px solid rgba(79,70,229,0.3); border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 20px; font-weight: 700;
   color: var(--g-gold); flex-shrink: 0;
@@ -57,7 +57,7 @@
 .tenant-detail__value--red  { color: var(--g-danger) !important; }
 
 .tenant-card__actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.tenant-btn { flex: 1; padding: 9px 6px; font-size: 11px; min-width: 60px; }
+.tenant-btn { flex: 1; padding: 9px 6px; font-size: 11px; min-width: 60px; min-height: 44px; }
 
 /* Modal modification */
 .edit-modal {

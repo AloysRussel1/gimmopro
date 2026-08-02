@@ -5,10 +5,15 @@
 import '@testing-library/jest-dom/extend-expect';
 
 // Mock matchmedia
-window.matchMedia = window.matchMedia || function() {
+window.matchMedia = window.matchMedia || function (query: string) {
   return {
-      matches: false,
-      addListener: function() {},
-      removeListener: function() {}
-  };
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: function () {},
+    removeListener: function () {},
+    addEventListener: function () {},
+    removeEventListener: function () {},
+    dispatchEvent: function () { return false; },
+  } as MediaQueryList;
 };

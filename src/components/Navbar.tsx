@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
-import axiosInstance from '../api/axiosConfig';
+import { isAuthenticated, logout } from '../api/auth';
 import '../assets/css/Navbar.css';
 
 const tabs = [
@@ -15,20 +15,8 @@ const Navbar: React.FC = () => {
   const history  = useHistory();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  if (location.pathname === '/login' || location.pathname === '/register') return null;
-
-  const handleLogout = async () => {
-    try {
-      const refresh = localStorage.getItem('refresh_token');
-      if (refresh) await axiosInstance.post('auth/logout/', { refresh });
-    } catch {
-      // Silently ignore — on déconnecte quand même
-    } finally {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      history.replace('/login');
-    }
-  };
+  // Le tab bar ne concerne que l'app connectée — jamais la landing page ou l'auth.
+  if (!isAuthenticated() || location.pathname === '/login' || location.pathname === '/register') return null;
 
   return (
     <>
@@ -68,7 +56,7 @@ const Navbar: React.FC = () => {
               <button className="g-btn g-btn--outline" onClick={() => setShowConfirm(false)}>
                 Annuler
               </button>
-              <button className="g-btn g-btn--danger" onClick={handleLogout}>
+              <button className="g-btn g-btn--danger" onClick={logout}>
                 🚪 Déconnecter
               </button>
             </div>

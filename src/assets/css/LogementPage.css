@@ -22,7 +22,7 @@
 
 .logement-page__add {
   background: var(--g-gold);
-  color: #0A0A0F;
+  color: var(--g-accent-ink);
   border: none;
   border-radius: var(--g-radius-sm);
   padding: 10px 16px;
@@ -91,7 +91,7 @@
 
 .voir-plus-btn {
   --background: var(--g-gold) !important;
-  --color: #0A0A0F !important;
+  --color: var(--g-accent-ink) !important;
   --border-radius: 10px !important;
   --box-shadow: none !important;
   margin-top: 10px !important;

@@ -6,7 +6,7 @@ import '../assets/css/Register.css';
 
 const Register: React.FC = () => {
   const [form, setForm] = useState({
-    username: '', email: '', password: '', confirm: '',
+    email: '', password: '', confirm: '',
   });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ const Register: React.FC = () => {
   };
 
   const handleRegister = async () => {
-    if (!form.username || !form.password || !form.confirm) {
+    if (!form.email || !form.password || !form.confirm) {
       setError('Remplissez tous les champs obligatoires.'); return;
     }
     if (form.password !== form.confirm) {
@@ -31,7 +31,6 @@ const Register: React.FC = () => {
     setLoading(true); setError('');
     try {
       const res = await axiosInstance.post('auth/register/', {
-        username: form.username,
         email:    form.email,
         password: form.password,
       });
@@ -64,26 +63,15 @@ const Register: React.FC = () => {
 
           <div className="reg-form g-animate g-animate--2">
             <div className="g-input-group">
-              <label className="g-label">Nom d'utilisateur *</label>
-              <input
-                className="g-input"
-                type="text"
-                placeholder="Choisissez un identifiant"
-                value={form.username}
-                onChange={handleChange('username')}
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
-            </div>
-
-            <div className="g-input-group">
-              <label className="g-label">Email (optionnel)</label>
+              <label className="g-label">Adresse email *</label>
               <input
                 className="g-input"
                 type="email"
-                placeholder="votre@email.com"
+                placeholder="vous@email.com"
                 value={form.email}
                 onChange={handleChange('email')}
+                autoCapitalize="none"
+                autoCorrect="off"
               />
             </div>
 

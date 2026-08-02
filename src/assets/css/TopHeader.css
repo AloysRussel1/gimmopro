@@ -1,0 +1,98 @@
+@import './theme.css';
+
+.top-header {
+  position: sticky; top: 0; z-index: 900;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  height: 56px; padding: 0 14px;
+  background: var(--g-surface);
+  border-bottom: 1px solid var(--g-border);
+  backdrop-filter: blur(10px);
+}
+
+.top-header__left,
+.top-header__actions,
+.top-header__right { position: relative; }
+.top-header__right { display: flex; align-items: center; gap: 6px; }
+
+/* ── Notifications ──────────────────────────── */
+.top-header__bell-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: none; border: none; border-radius: var(--g-radius-sm);
+  color: var(--g-text-2) !important; font-size: 17px; cursor: pointer;
+}
+.top-header__bell-btn:hover { background: var(--g-surface-2); }
+.top-header__bell-badge {
+  position: absolute; top: 2px; right: 2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: var(--g-danger); color: #fff !important;
+  border-radius: 100px; border: 2px solid var(--g-surface);
+  font-size: 9.5px; font-weight: 700; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Action rapide ─────────────────────────── */
+.top-header__actions-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--g-accent); color: var(--g-accent-ink) !important;
+  border: none; border-radius: var(--g-radius-sm);
+  min-height: 36px; padding: 0 12px;
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 600;
+  cursor: pointer; transition: background-color 0.15s ease;
+}
+.top-header__actions-btn:hover { background: var(--g-accent-hover); }
+.top-header__actions-btn span { white-space: nowrap; }
+.top-header__chevron { transition: transform 0.15s ease; }
+.top-header__chevron--open { transform: rotate(180deg); }
+
+/* ── Bloc utilisateur ──────────────────────── */
+.top-header__profile-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none; cursor: pointer; padding: 4px;
+  border-radius: var(--g-radius-sm);
+}
+.top-header__profile-btn:hover { background: var(--g-surface-2); }
+
+.top-header__user-text { display: none; flex-direction: column; align-items: flex-end; line-height: 1.25; }
+.top-header__user-name { font-size: 12.5px; font-weight: 700; color: var(--g-text) !important; }
+.top-header__user-email { font-size: 11px; color: var(--g-text-3); }
+
+.top-header__avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--g-accent-soft); color: var(--g-accent);
+  border: 1px solid rgba(79,70,229,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Dropdowns ─────────────────────────────── */
+.top-header__dropdown {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  min-width: 220px;
+  background: var(--g-surface); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); box-shadow: var(--g-shadow-md);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  animation: fadeUp 0.15s ease both;
+  z-index: 950;
+}
+.top-header__dropdown--right { left: auto; right: 0; }
+
+.top-header__dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: none; border-radius: var(--g-radius-sm);
+  padding: 9px 10px; width: 100%; text-align: left;
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  color: var(--g-text) !important; cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.top-header__dropdown-item:hover { background: var(--g-surface-2); }
+.top-header__dropdown-item svg { flex-shrink: 0; color: var(--g-text-3); }
+.top-header__dropdown-item--danger { color: var(--g-danger) !important; }
+.top-header__dropdown-item--danger svg { color: var(--g-danger); }
+
+@media (min-width: 560px) {
+  .top-header__user-text { display: flex; }
+}

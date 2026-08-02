@@ -3,14 +3,15 @@ import {
   IonPage, IonHeader, IonToolbar, IonTitle,
   IonContent, IonSearchbar, IonModal,
 } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import DocumentsSection from '../components/DocumentsSection';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
   id: number; nom_complet: string; telephone: string; email: string;
-  cni: string; numero_contrat: string; date_debut_contrat: string;
-  loyer: string; date_prochain_paiement: string; statut: string; actif: boolean;
+  cni: string; numero_contrat: string; date_debut_contrat: string; date_fin_contrat: string | null;
+  loyer: string; caution_versee: string; date_prochain_paiement: string; statut: string; actif: boolean;
   compartiment: number | null; compartiment_nom: string;
   logement: number | null; logement_nom: string; logement_loc: string;
 }
@@ -29,7 +30,12 @@ const TenantManagement: React.FC = () => {
   const [saving,     setSaving]     = useState(false);
   const [editError,  setEditError]  = useState('');
 
-  const history = useHistory();
+  // Modal documents
+  const [showDocs,   setShowDocs]   = useState(false);
+  const [docsOccupant, setDocsOccupant] = useState<Occupant | null>(null);
+
+  const history  = useHistory();
+  const location = useLocation<{ openEditOccupantId?: number }>();
 
   useEffect(() => {
     axiosInstance.get('occupants/')
@@ -83,11 +89,24 @@ const TenantManagement: React.FC = () => {
       telephone:              o.telephone,
       email:                  o.email,
       loyer:                  o.loyer,
+      caution_versee:         o.caution_versee,
       date_prochain_paiement: o.date_prochain_paiement,
+      date_fin_contrat:       o.date_fin_contrat,
     });
     setEditError('');
     setShowEdit(true);
   };
+
+  // Ouvre directement la modale de modification quand on arrive depuis le
+  // bloc "Alertes & Rappels" du Dashboard (bail à renouveler/réviser).
+  useEffect(() => {
+    const targetId = location.state?.openEditOccupantId;
+    if (!targetId || occupants.length === 0) return;
+    const occupant = occupants.find(o => o.id === targetId);
+    if (occupant) openEdit(occupant);
+    history.replace(location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [occupants]);
 
   const handleSaveEdit = async () => {
     if (!editId) return;
@@ -201,6 +220,9 @@ const TenantManagement: React.FC = () => {
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleContrat(o.id)}>
                       📄 Contrat
                     </button>
+                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => { setDocsOccupant(o); setShowDocs(true); }}>
+                      📎 Documents
+                    </button>
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleLiberer(o.id, o.nom_complet)}>
                       🚪 Départ
                     </button>
@@ -245,14 +267,38 @@ const TenantManagement: React.FC = () => {
                 onChange={e => setEditData(d => ({ ...d, loyer: e.target.value }))} />
             </div>
             <div className="g-input-group">
+              <label className="g-label">Dépôt de garantie / Caution versée (FCFA)</label>
+              <input className="g-input" type="number" inputMode="numeric" value={editData.caution_versee ?? ''}
+                onChange={e => setEditData(d => ({ ...d, caution_versee: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
               <label className="g-label">Prochain paiement</label>
               <input className="g-input" type="date" value={editData.date_prochain_paiement || ''}
                 onChange={e => setEditData(d => ({ ...d, date_prochain_paiement: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Date de fin de bail <span className="tf-optional">(optionnel)</span></label>
+              <input className="g-input" type="date" value={editData.date_fin_contrat || ''}
+                onChange={e => setEditData(d => ({ ...d, date_fin_contrat: e.target.value || null }))} />
             </div>
 
             <button className="g-btn g-btn--primary" onClick={handleSaveEdit} disabled={saving}>
               {saving ? '⏳ Enregistrement…' : '✓ Sauvegarder'}
             </button>
+          </div>
+        </IonModal>
+
+        {/* Modal Documents */}
+        <IonModal isOpen={showDocs} onDidDismiss={() => setShowDocs(false)}>
+          <div className="dep-modal">
+            <div className="pay-modal__head" style={{ marginBottom: '20px' }}>
+              <div>
+                <h2 className="pay-modal__title">Documents & Pièces jointes</h2>
+                <p className="hist-modal__comp">{docsOccupant?.nom_complet}</p>
+              </div>
+              <button className="pay-modal__close" onClick={() => setShowDocs(false)}>✕</button>
+            </div>
+            {docsOccupant && <DocumentsSection occupantId={docsOccupant.id} />}
           </div>
         </IonModal>
       </IonContent>

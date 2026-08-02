@@ -1,152 +1,101 @@
 import React, { useState } from 'react';
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonButton,
-  IonInput,
-  IonTextarea,
-  IonLabel,
-  IonItem,
-  IonProgressBar,
-} from '@ionic/react';
-import './../assets/css/AddLogementForm.css';
-import { addLogement } from '../api/logementService';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
+import axiosInstance from '../api/axiosConfig';
+import '../assets/css/AddLogementForm.css';
 
 const AddLogementForm: React.FC = () => {
-  const [formData, setFormData] = useState({
-    nom: '',
-    localisation: '',
-    description: '',
-    image: null,
-  });
+  const history = useHistory();
+  const [form, setForm] = useState({ nom: '', localisation: '', description: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const set = (field: string, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setError('');
   };
 
-  const handleImageChange = (e: any) => {
-    setFormData({ ...formData, image: e.target.files[0] });
-  };
+  const handleSubmit = async () => {
+    if (!form.nom.trim())          { setError('Le nom du logement est requis.'); return; }
+    if (!form.localisation.trim()) { setError('La localisation est requise.'); return; }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
+    setSaving(true); setError('');
     try {
-      // Appel à la fonction addLogement pour ajouter un logement
-      const result = await addLogement(formData);
-      console.log('Logement ajouté:', result);
-      // Vous pouvez rediriger l'utilisateur ou afficher un message de succès ici.
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du logement:', error);
+      const res = await axiosInstance.post('logements/', {
+        nom: form.nom.trim(),
+        localisation: form.localisation.trim(),
+        description: form.description.trim(),
+      });
+      const logementId = res.data.id;
+      // Chaînage immédiat : on redirige directement vers l'ajout de compartiment,
+      // avec un message affiché à l'arrivée plutôt qu'un toast qui disparaîtrait
+      // pendant la transition de page.
+      history.replace(`/logement/${logementId}/ajouter-compartiment`, {
+        flashMessage: `"${form.nom.trim()}" enregistré ! Ajoutons maintenant ses compartiments.`,
+      });
+    } catch (e: any) {
+      const data = e?.response?.data;
+      if (data?.nom) setError('Ce nom de logement existe déjà.');
+      else setError("Erreur lors de l'enregistrement. Vérifiez les informations.");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
-  };
-
-  const nextStep = () => {
-    setStep(step + 1);
-  };
-
-  const previousStep = () => {
-    setStep(step - 1);
   };
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Ajouter un Logement</IonTitle>
+          <IonTitle style={{ fontFamily: 'var(--font-display)', fontSize: '18px' }}>
+            Nouveau logement
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding form-page">
-        <IonProgressBar value={step / 2} className='progress-bar' />
 
-        <form onSubmit={handleSubmit} className="form-classic">
-          <h2>Étape {step}</h2>
+      <IonContent className="add-logement-content">
+        <div className="form-wrap">
+          <p className="al-intro" style={{ marginBottom: '20px' }}>
+            Un logement regroupe les compartiments (appartements, studios, chambres, boutiques)
+            que vous allez ensuite créer et louer séparément.
+          </p>
 
-          {step === 1 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Nom du Logement</IonLabel>
-                <IonInput
-                  name="nom"
-                  value={formData.nom}
-                  onIonInput={handleChange}
-                  placeholder="Entrez le nom du logement"
-                  required
-                />
-              </IonItem>
+          {error && <p className="al-error">⚠ {error}</p>}
 
-              <IonItem>
-                <IonLabel position="stacked">Localisation</IonLabel>
-                <IonInput
-                  name="localisation"
-                  value={formData.localisation}
-                  onIonInput={handleChange}
-                  placeholder="Entrez la localisation"
-                  required
-                />
-              </IonItem>
+          <div className="g-input-group">
+            <label className="g-label">Nom du logement / immeuble *</label>
+            <input
+              className="g-input"
+              placeholder="Ex : Résidence Bonapriso"
+              value={form.nom}
+              onChange={e => set('nom', e.target.value)}
+            />
+          </div>
 
-              <IonItem>
-                <IonLabel position="stacked">Description</IonLabel>
-                <IonTextarea
-                  name="description"
-                  value={formData.description}
-                  onIonInput={handleChange}
-                  placeholder="Entrez une description"
-                  required
-                />
-              </IonItem>
-            </>
-          )}
+          <div className="g-input-group">
+            <label className="g-label">Localisation *</label>
+            <input
+              className="g-input"
+              placeholder="Ex : Bonapriso, Douala"
+              value={form.localisation}
+              onChange={e => set('localisation', e.target.value)}
+            />
+          </div>
 
-          {/* {step === 2 && (
-            <>
-              <IonItem>
-                <IonLabel position="stacked">Image</IonLabel>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  required
-                />
-              </IonItem>
-            </>
-          )} */}
+          <div className="g-input-group">
+            <label className="g-label">Description <span className="al-optional">(optionnel)</span></label>
+            <textarea
+              className="g-input"
+              rows={3}
+              placeholder="Quelques précisions utiles sur l'immeuble…"
+              value={form.description}
+              onChange={e => set('description', e.target.value)}
+            />
+          </div>
 
-          <IonRow>
-            <IonCol>
-              {step > 1 && (
-                <IonButton expand="block" onClick={previousStep} className='btn'>
-                  Précédent
-                </IonButton>
-              )}
-            </IonCol>
-            <IonCol>
-              {step < 2 ? (
-                <IonButton expand="block" onClick={nextStep} className='btn'>
-                  Suivant
-                </IonButton>
-              ) : (
-                <IonButton expand="block" type="submit" className='btn' disabled={loading}>
-                  {loading ? 'Ajout en cours...' : 'Ajouter'}
-                </IonButton>
-              )}
-            </IonCol>
-          </IonRow>
-        </form>
+          <button className="g-btn g-btn--primary" onClick={handleSubmit} disabled={saving}>
+            {saving ? 'Enregistrement…' : 'Enregistrer et ajouter des compartiments →'}
+          </button>
+        </div>
       </IonContent>
     </IonPage>
   );

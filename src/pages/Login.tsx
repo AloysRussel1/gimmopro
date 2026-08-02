@@ -5,7 +5,7 @@ import axiosInstance from '../api/axiosConfig';
 import '../assets/css/Login.css';
 
 const Login: React.FC = () => {
-  const [username,  setUsername]  = useState('');
+  const [email,     setEmail]     = useState('');
   const [password,  setPassword]  = useState('');
   const [showPass,  setShowPass]  = useState(false);
   const [error,     setError]     = useState('');
@@ -13,10 +13,13 @@ const Login: React.FC = () => {
   const history = useHistory();
 
   const handleLogin = async () => {
-    if (!username || !password) { setError('Remplissez tous les champs.'); return; }
+    if (!email || !password) { setError('Remplissez tous les champs.'); return; }
     setLoading(true); setError('');
     try {
-      const res = await axiosInstance.post('auth/login/', { username, password });
+      // Le backend attend la clé "username" (sérialiseur JWT par défaut de
+      // SimpleJWT) — mais EmailOrUsernameBackend accepte un email dans ce
+      // champ, donc l'utilisateur ne voit et ne saisit plus que son email.
+      const res = await axiosInstance.post('auth/login/', { username: email, password });
       localStorage.setItem('access_token',  res.data.access);
       localStorage.setItem('refresh_token', res.data.refresh);
       history.replace('/dashboard');
@@ -44,20 +47,31 @@ const Login: React.FC = () => {
 
           <div className="login-form g-animate g-animate--2">
             <div className="g-input-group">
-              <label className="g-label">Nom d'utilisateur ou Email</label>
+              <label className="g-label">Adresse email</label>
               <input
                 className="g-input"
-                type="text"
-                placeholder="Identifiant ou email"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
+                type="email"
+                placeholder="vous@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 autoCapitalize="none"
                 autoCorrect="off"
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
               />
             </div>
 
             <div className="g-input-group">
-              <label className="g-label">Mot de passe</label>
+              <div className="login-pass-label-row">
+                <label className="g-label">Mot de passe</label>
+                <button
+                  type="button"
+                  className="login-forgot-link"
+                  onClick={() => history.push('/mot-de-passe-oublie')}
+                  tabIndex={-1}
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
               <div className="login-pass-wrap">
                 <input
                   className="g-input login-pass-input"

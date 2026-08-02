@@ -23,7 +23,7 @@
 /* Info box */
 .tf-info-box {
   background: var(--g-gold-dim);
-  border: 1px solid rgba(201,168,76,0.25);
+  border: 1px solid rgba(79,70,229,0.25);
   border-radius: var(--g-radius-sm);
   padding: 14px; margin-bottom: 20px;
   display: flex; flex-direction: column; gap: 4px;
@@ -50,13 +50,22 @@
   background: var(--g-surface); padding: 3px 8px;
   border-radius: 6px;
 }
-.tf-comp-btn--active .tf-comp-btn__type { background: var(--g-gold); color: #0A0A0F !important; }
+.tf-comp-btn--active .tf-comp-btn__type { background: var(--g-gold); color: var(--g-accent-ink) !important; }
 
 .tf-no-comp {
   display: flex; align-items: center; gap: 10px;
   background: var(--g-danger-dim); color: var(--g-danger) !important;
   border-radius: var(--g-radius-sm); padding: 12px 14px;
   font-size: 13px; font-weight: 500;
+}
+
+/* Champ "verrouillé" (pré-sélectionné depuis une autre page, non modifiable ici) */
+.tf-locked-field {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm); padding: 12px 14px;
+  font-size: 14px; font-weight: 600; color: var(--g-text-2);
+  opacity: 0.85;
 }
 
 /* Confirmation */

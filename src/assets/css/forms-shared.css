@@ -86,7 +86,7 @@ ion-progress-bar {
 /* Buttons */
 .btn {
   --background: var(--g-gold) !important;
-  --color: #0A0A0F !important;
+  --color: var(--g-accent-ink) !important;
   --border-radius: 10px !important;
   --box-shadow: none !important;
   font-weight: 700 !important;

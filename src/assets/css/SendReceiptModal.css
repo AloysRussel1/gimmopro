@@ -1,0 +1,65 @@
+@import './theme.css';
+
+.send-modal {
+  background: var(--g-surface); min-height: 100%;
+  padding: 28px 20px 48px; overflow-y: auto;
+}
+.send-modal__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.send-modal__title { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--g-text) !important; }
+
+.send-modal__receipt {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: linear-gradient(160deg, var(--g-accent-soft), var(--g-surface));
+  border: 1px solid rgba(79,70,229,0.22); border-radius: var(--g-radius);
+  padding: 20px 16px; margin-bottom: 16px;
+}
+.send-modal__receipt-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-text-3); }
+.send-modal__receipt-montant { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--g-text); margin: 6px 0 2px; }
+.send-modal__receipt-periode { font-size: 12.5px; color: var(--g-text-2); margin-bottom: 14px; }
+.send-modal__pdf-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--g-surface); border: 1px solid var(--g-border-bright);
+  border-radius: var(--g-radius-sm); padding: 8px 14px;
+  font-size: 12.5px; font-weight: 600; color: var(--g-text) !important; cursor: pointer;
+}
+.send-modal__pdf-toggle:hover { background: var(--g-surface-2); }
+.send-modal__pdf-frame {
+  width: 100%; height: 360px; border: 1px solid var(--g-border); border-radius: var(--g-radius-sm);
+  margin-top: 14px; background: #fff;
+}
+
+.send-modal__contact {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius); padding: 14px 16px; margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.send-modal__contact-row { display: flex; justify-content: space-between; gap: 12px; }
+.send-modal__contact-label { font-size: 12px; color: var(--g-text-3); }
+.send-modal__contact-val { font-size: 13px; font-weight: 600; color: var(--g-text); text-align: right; }
+
+.send-modal__preview {
+  font-size: 13px; line-height: 1.55; color: var(--g-text-2);
+  background: var(--g-accent-soft); border: 1px solid rgba(79,70,229,0.18);
+  border-radius: var(--g-radius-sm); padding: 12px 14px; margin-bottom: 20px;
+}
+
+.send-modal__actions { display: flex; flex-direction: column; gap: 10px; }
+.send-modal__btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 46px; border-radius: var(--g-radius-sm);
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  border: 1px solid transparent; cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+.send-modal__btn svg { width: 18px; height: 18px; }
+.send-modal__btn:active { transform: scale(0.98); }
+.send-modal__btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.send-modal__btn--whatsapp { background: #25D366; color: #fff; }
+.send-modal__btn--whatsapp:hover { filter: brightness(0.95); }
+.send-modal__btn--sms { background: var(--g-surface); border-color: var(--g-border-bright); color: var(--g-text) !important; }
+.send-modal__btn--sms:hover { background: var(--g-surface-2); }
+.send-modal__btn--email { background: var(--g-accent); color: var(--g-accent-ink) !important; }
+.send-modal__btn--email:hover { background: var(--g-accent-hover); }
+
+.send-modal__hint { font-size: 11.5px; color: var(--g-text-3); margin-top: 10px; text-align: center; }

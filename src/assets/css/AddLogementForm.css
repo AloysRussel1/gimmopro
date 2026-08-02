@@ -1,1 +1,13 @@
 @import './forms-shared.css';
+
+.add-logement-content { --background: var(--g-bg); }
+
+.al-intro { font-size: 13px; color: var(--g-text-2); line-height: 1.5; }
+.al-optional { color: var(--g-text-3); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.al-error {
+  background: var(--g-danger-dim); color: var(--g-danger) !important;
+  border: 1px solid rgba(220,38,38,0.2); border-radius: var(--g-radius-sm);
+  padding: 10px 14px; font-size: 13px; line-height: 1.4; margin-bottom: 16px;
+}
+
+textarea.g-input { resize: vertical; font-family: var(--font-body); }

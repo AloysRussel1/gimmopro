@@ -4,9 +4,10 @@
 
 /* Header logement */
 .ld-header {
-  background: linear-gradient(135deg, #1A1710 0%, #13120D 100%);
-  border: 1px solid rgba(201,168,76,0.2);
+  background: linear-gradient(135deg, var(--g-accent-soft), var(--g-surface));
+  border: 1px solid rgba(79,70,229,0.2);
   border-radius: var(--g-radius);
+  box-shadow: var(--g-shadow);
   padding: 20px; margin-bottom: 20px;
 }
 .ld-header__name {
@@ -24,19 +25,67 @@
   border-radius: var(--g-radius-sm); padding: 10px; text-align: center;
 }
 .ld-stat--green { border-color: rgba(76,175,125,0.3); }
-.ld-stat--gold  { border-color: rgba(201,168,76,0.3); }
+.ld-stat--gold  { border-color: rgba(79,70,229,0.3); }
 .ld-stat__val   { display: block; font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--g-text) !important; }
 .ld-stat__label { font-size: 10px; color: var(--g-text-3); text-transform: uppercase; letter-spacing: 0.08em; }
 
-/* Controls */
-.ld-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.ld-controls ion-searchbar { flex: 1; }
-.ld-add-btn {
-  background: var(--g-gold); color: #0A0A0F;
-  border: none; border-radius: var(--g-radius-sm);
-  padding: 10px 12px; font-family: var(--font-body);
-  font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
+/* Controls — empilés (recherche + rangée d'actions) sur mobile, alignés sur
+   une seule ligne à partir de 560px. La rangée d'actions défile horizontalement
+   (au lieu de se faire tronquer/masquer par un flex nowrap) si elle ne tient
+   pas dans la largeur disponible — c'est ce qui rendait "Documents" inaccessible
+   sur petit écran (375/414px). */
+.ld-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.ld-search { width: 100%; }
+
+.ld-actions-row {
+  display: flex; gap: 8px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding-bottom: 2px; /* évite que l'anneau de focus/ombre soit rogné */
 }
+.ld-actions-row::-webkit-scrollbar { display: none; }
+
+.ld-add-btn {
+  background: var(--g-gold); color: var(--g-accent-ink);
+  border: none; border-radius: var(--g-radius-sm);
+  padding: 10px 14px; font-family: var(--font-body);
+  font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
+  flex-shrink: 0; min-height: 44px; /* zone tactile confortable au pouce */
+  display: inline-flex; align-items: center;
+}
+.ld-add-btn--outline {
+  background: var(--g-surface); color: var(--g-text) !important;
+  border: 1px solid var(--g-border-bright);
+}
+
+@media (min-width: 560px) {
+  .ld-controls { flex-direction: row; align-items: center; }
+  .ld-search { flex: 1; width: auto; }
+  .ld-actions-row { flex-shrink: 0; }
+}
+
+/* Dépenses */
+.dep-modal { background: var(--g-surface); min-height: 100%; padding: 28px 20px 48px; overflow-y: auto; }
+.dep-total {
+  background: var(--g-danger-dim); color: var(--g-danger);
+  border-radius: var(--g-radius-sm); padding: 10px 14px;
+  font-size: 13px; margin-bottom: 18px;
+}
+.dep-total strong { color: var(--g-danger); }
+.dep-form { display: flex; flex-direction: column; gap: 0; margin-bottom: 8px; }
+.dep-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dep-list { display: flex; flex-direction: column; gap: 10px; }
+.dep-card {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm); padding: 12px 14px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.dep-card__libelle { font-size: 13.5px; font-weight: 600; color: var(--g-text); }
+.dep-card__meta { font-size: 11.5px; color: var(--g-text-3); margin-top: 2px; }
+.dep-card__right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.dep-card__montant { font-size: 13.5px; font-weight: 700; color: var(--g-danger); }
+.dep-card__delete { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.7; }
+.dep-card__delete:active { opacity: 1; }
 
 .ld-filter {
   background: var(--g-surface-2) !important;
@@ -71,7 +120,7 @@
 
 /* Occupant */
 .ld-occupant {
-  background: var(--g-surface-2); border: 1px solid rgba(201,168,76,0.15);
+  background: var(--g-surface-2); border: 1px solid rgba(79,70,229,0.15);
   border-radius: var(--g-radius-sm); padding: 12px 14px;
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 12px; margin-bottom: 12px;
@@ -79,10 +128,13 @@
 .ld-occupant__info { flex: 1; }
 .ld-occupant__name   { font-weight: 600; font-size: 14px; color: var(--g-text) !important; margin-bottom: 2px; }
 .ld-occupant__detail { font-size: 12px; color: var(--g-gold) !important; margin-bottom: 2px; }
+.ld-loyer-ref { font-size: 12.5px; color: var(--g-text-2); margin-bottom: 12px; }
+.ld-loyer-ref strong { color: var(--g-text) !important; }
 .ld-occupant__statut { font-size: 11px; font-weight: 600; }
 .ld-retard { color: var(--g-danger) !important; }
 .ld-actif  { color: var(--g-success) !important; }
-.ld-liberer-btn { width: auto !important; padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
+.ld-occupant__btns { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.ld-liberer-btn { width: auto !important; padding: 8px 12px; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
 
 /* Libre */
 .ld-libre-msg {

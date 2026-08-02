@@ -3,12 +3,17 @@ import {
   IonPage, IonHeader, IonToolbar, IonTitle,
   IonContent, IonProgressBar,
 } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import '../assets/css/AddTenantForm.css';
 
 interface Logement     { id: number; nom: string; }
-interface Compartiment { id: number; nom: string; type: string; }
+interface Compartiment { id: number; nom: string; type: string; loyer_reference: string | null; }
+interface PreselectState {
+  preselectLogementId?: number; preselectLogementNom?: string;
+  preselectCompartimentId?: number; preselectCompartimentNom?: string;
+  preselectCompartimentType?: string; preselectLoyerReference?: string | null;
+}
 
 const STEPS = [
   'Informations personnelles',
@@ -24,7 +29,8 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const AddTenantForm: React.FC = () => {
-  const history = useHistory();
+  const history  = useHistory();
+  const location = useLocation<PreselectState>();
   const [step,    setStep]   = useState(1);
   const [saving,  setSaving] = useState(false);
   const [error,   setError]  = useState('');
@@ -32,28 +38,34 @@ const AddTenantForm: React.FC = () => {
   const [logements,     setLogements]     = useState<Logement[]>([]);
   const [compartiments, setCompartiments] = useState<Compartiment[]>([]);
 
+  const preselect = location.state?.preselectCompartimentId ? location.state : null;
+  const locked = !!preselect;
+
   const [form, setForm] = useState({
     nom_complet:            '',
     email:                  '',
     telephone:              '',
     cni:                    '',
-    logement:               '',
-    compartiment:           '',
+    logement:               preselect ? String(preselect.preselectLogementId) : '',
+    compartiment:           preselect ? String(preselect.preselectCompartimentId) : '',
     date_debut_contrat:     '',
-    loyer:                  '',
+    date_fin_contrat:       '',
+    loyer:                  preselect?.preselectLoyerReference ? String(preselect.preselectLoyerReference) : '',
+    caution:                '',
     date_prochain_paiement: '',
   });
 
   useEffect(() => {
+    if (locked) return; // pas besoin de la liste des logements si déjà pré-sélectionné
     axiosInstance.get('logements/').then(r => setLogements(r.data)).catch(console.error);
-  }, []);
+  }, [locked]);
 
   useEffect(() => {
-    if (!form.logement) { setCompartiments([]); return; }
+    if (locked || !form.logement) { setCompartiments([]); return; }
     axiosInstance.get(`logements/${form.logement}/compartiments/?statut=LIBRE`)
       .then(r => setCompartiments(r.data))
       .catch(console.error);
-  }, [form.logement]);
+  }, [form.logement, locked]);
 
   const set = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -78,8 +90,12 @@ const AddTenantForm: React.FC = () => {
     setStep(s => s + 1);
   };
 
-  const selectedComp = compartiments.find(c => String(c.id) === form.compartiment);
-  const selectedLog  = logements.find(l => String(l.id) === form.logement);
+  const selectedComp = locked
+    ? { id: preselect!.preselectCompartimentId!, nom: preselect!.preselectCompartimentNom!, type: preselect!.preselectCompartimentType! }
+    : compartiments.find(c => String(c.id) === form.compartiment);
+  const selectedLog = locked
+    ? { id: preselect!.preselectLogementId!, nom: preselect!.preselectLogementNom! }
+    : logements.find(l => String(l.id) === form.logement);
 
   const handleSubmit = async () => {
     setSaving(true); setError('');
@@ -92,7 +108,9 @@ const AddTenantForm: React.FC = () => {
         logement:               parseInt(form.logement),
         compartiment:           parseInt(form.compartiment),
         date_debut_contrat:     form.date_debut_contrat,
+        date_fin_contrat:       form.date_fin_contrat || null,
         loyer:                  parseFloat(form.loyer),
+        caution_versee:         form.caution ? parseFloat(form.caution) : 0,
         date_prochain_paiement: form.date_prochain_paiement,
         statut:                 'Actif',
         actif:                  true,
@@ -166,40 +184,61 @@ const AddTenantForm: React.FC = () => {
           {/* ── ÉTAPE 3 — Logement & Compartiment ── */}
           {step === 3 && (
             <div className="tf-section">
-              <div className="g-input-group">
-                <label className="g-label">Logement *</label>
-                <select className="g-input" value={form.logement}
-                  onChange={e => { set('logement', e.target.value); set('compartiment', ''); }}>
-                  <option value="">— Choisir un logement —</option>
-                  {logements.map(l => (
-                    <option key={l.id} value={l.id}>{l.nom}</option>
-                  ))}
-                </select>
-              </div>
-
-              {form.logement && (
-                <div className="g-input-group">
-                  <label className="g-label">Compartiment disponible *</label>
-                  {compartiments.length === 0 ? (
-                    <div className="tf-no-comp">
-                      <span>🔒</span>
-                      <span>Aucun compartiment libre dans ce logement</span>
-                    </div>
-                  ) : (
-                    <div className="tf-comp-list">
-                      {compartiments.map(c => (
-                        <button
-                          key={c.id}
-                          className={`tf-comp-btn ${form.compartiment === String(c.id) ? 'tf-comp-btn--active' : ''}`}
-                          onClick={() => set('compartiment', String(c.id))}
-                        >
-                          <span className="tf-comp-btn__nom">{c.nom}</span>
-                          <span className="tf-comp-btn__type">{TYPE_LABEL[c.type] || c.type}</span>
-                        </button>
+              {locked ? (
+                <>
+                  <p className="tf-info-note" style={{ marginBottom: '14px' }}>
+                    Pré-sélectionnés depuis la fiche du compartiment — pas besoin de les rechoisir.
+                  </p>
+                  <div className="g-input-group">
+                    <label className="g-label">Logement</label>
+                    <div className="tf-locked-field">🏠 {selectedLog?.nom}</div>
+                  </div>
+                  <div className="g-input-group">
+                    <label className="g-label">Compartiment</label>
+                    <div className="tf-locked-field">🚪 {selectedComp?.nom} ({TYPE_LABEL[selectedComp?.type || ''] || selectedComp?.type})</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="g-input-group">
+                    <label className="g-label">Logement *</label>
+                    <select className="g-input" value={form.logement}
+                      onChange={e => { set('logement', e.target.value); set('compartiment', ''); }}>
+                      <option value="">— Choisir un logement —</option>
+                      {logements.map(l => (
+                        <option key={l.id} value={l.id}>{l.nom}</option>
                       ))}
+                    </select>
+                  </div>
+
+                  {form.logement && (
+                    <div className="g-input-group">
+                      <label className="g-label">Compartiment disponible *</label>
+                      {compartiments.length === 0 ? (
+                        <div className="tf-no-comp">
+                          <span>🔒</span>
+                          <span>Aucun compartiment libre dans ce logement</span>
+                        </div>
+                      ) : (
+                        <div className="tf-comp-list">
+                          {compartiments.map(c => (
+                            <button
+                              key={c.id}
+                              className={`tf-comp-btn ${form.compartiment === String(c.id) ? 'tf-comp-btn--active' : ''}`}
+                              onClick={() => {
+                                set('compartiment', String(c.id));
+                                if (!form.loyer && c.loyer_reference) set('loyer', String(c.loyer_reference));
+                              }}
+                            >
+                              <span className="tf-comp-btn__nom">{c.nom}</span>
+                              <span className="tf-comp-btn__type">{TYPE_LABEL[c.type] || c.type}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           )}
@@ -228,6 +267,20 @@ const AddTenantForm: React.FC = () => {
               </div>
 
               <div className="g-input-group">
+                <label className="g-label">Dépôt de garantie / Caution versée (FCFA) <span className="tf-optional">(optionnel)</span></label>
+                <input className="g-input" type="number" inputMode="numeric" placeholder="0"
+                  value={form.caution}
+                  onChange={e => set('caution', e.target.value)} />
+              </div>
+
+              <div className="g-input-group">
+                <label className="g-label">Date de fin de bail <span className="tf-optional">(optionnel — laisser vide si durée indéterminée)</span></label>
+                <input className="g-input" type="date"
+                  value={form.date_fin_contrat}
+                  onChange={e => set('date_fin_contrat', e.target.value)} />
+              </div>
+
+              <div className="g-input-group">
                 <label className="g-label">Date du prochain paiement *</label>
                 <input className="g-input" type="date"
                   value={form.date_prochain_paiement}
@@ -249,6 +302,8 @@ const AddTenantForm: React.FC = () => {
                   ['Compartiment',      selectedComp ? `${selectedComp.nom} (${TYPE_LABEL[selectedComp.type]})` : '—'],
                   ['Date d\'entrée',    form.date_debut_contrat],
                   ['Loyer',             `${parseFloat(form.loyer || '0').toLocaleString('fr-FR')} FCFA / mois`],
+                  ['Dépôt de garantie', form.caution ? `${parseFloat(form.caution).toLocaleString('fr-FR')} FCFA` : 'Aucun'],
+                  ['Fin de bail',       form.date_fin_contrat || 'Durée indéterminée'],
                   ['Prochain paiement', form.date_prochain_paiement],
                   ['N° Contrat',        '🔄 Généré automatiquement'],
                 ].map(([k, v]) => (

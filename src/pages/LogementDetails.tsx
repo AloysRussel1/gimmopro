@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle,
-  IonContent, IonSearchbar, IonModal,
+  IonContent, IonSearchbar, IonModal, IonToast,
 } from '@ionic/react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from './../api/axiosConfig';
+import DocumentsSection from '../components/DocumentsSection';
 import './../assets/css/LogementDetails.css';
 
 interface OccupantMini {
@@ -15,6 +16,7 @@ interface Compartiment {
   id: number; type: string; nom: string; statut: string;
   logement: number; chambres: number; salons: number;
   douches: number; cuisines: number;
+  loyer_reference: string | null; mezzanine: boolean;
   occupant_actuel: OccupantMini | null;
 }
 interface Logement {
@@ -25,10 +27,19 @@ interface Historique {
   id: number; nom_occupant: string; date_entree: string;
   date_sortie: string | null; loyer: string; duree_jours: number;
 }
+interface Depense {
+  id: number; logement: number; libelle: string;
+  montant: string; date: string; categorie: string; note: string;
+}
 
 const TYPE_LABEL: Record<string, string> = {
   STUDIO: 'Studio', CHAMBRE: 'Chambre',
   APPARTEMENT: 'Appartement', BOUTIQUE: 'Boutique',
+};
+
+const CATEGORIE_LABEL: Record<string, string> = {
+  REPARATION: '🔧 Réparations', ELECTRICITE: '⚡ Électricité', EAU: '💧 Eau',
+  TAXE: '📋 Taxe', ENTRETIEN: '🧹 Entretien', AUTRE: '📌 Autre',
 };
 
 const LogementDetailsPage: React.FC = () => {
@@ -44,20 +55,63 @@ const LogementDetailsPage: React.FC = () => {
   const [historiqueComp,   setHistoriqueComp]   = useState<string>('');
   const [loadingHistorique, setLoadingHistorique] = useState(false);
 
-  const history = useHistory();
-  const { id }  = useParams<{ id: string }>();
+  // Documents
+  const [showDocuments, setShowDocuments] = useState(false);
+
+  // Dépenses
+  const [showDepenses,  setShowDepenses]  = useState(false);
+  const [depenses,      setDepenses]      = useState<Depense[]>([]);
+  const [savingDepense, setSavingDepense] = useState(false);
+  const [depenseError,  setDepenseError]  = useState('');
+  const [depenseForm, setDepenseForm] = useState({
+    libelle: '', montant: '', date: new Date().toISOString().split('T')[0], categorie: 'AUTRE',
+  });
+
+  const history  = useHistory();
+  const location = useLocation<{ flashMessage?: string }>();
+  const { id }   = useParams<{ id: string }>();
+  const [showToast, setShowToast] = useState(!!location.state?.flashMessage);
 
   useEffect(() => {
     if (!id) return;
     Promise.all([
       axiosInstance.get(`logements/${id}/`),
       axiosInstance.get(`logements/${id}/compartiments/`),
-    ]).then(([lRes, cRes]) => {
+      axiosInstance.get(`depenses/?logement_id=${id}`),
+    ]).then(([lRes, cRes, dRes]) => {
       setLogement(lRes.data);
       setCompartiments(cRes.data);
+      setDepenses(dRes.data);
     }).catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  const totalDepenses = depenses.reduce((sum, d) => sum + parseFloat(d.montant), 0);
+
+  const handleAddDepense = async () => {
+    if (!depenseForm.libelle.trim()) { setDepenseError('Le libellé est requis.'); return; }
+    if (!depenseForm.montant)        { setDepenseError('Le montant est requis.'); return; }
+    setSavingDepense(true); setDepenseError('');
+    try {
+      const res = await axiosInstance.post('depenses/', {
+        logement: parseInt(id), libelle: depenseForm.libelle.trim(),
+        montant: parseFloat(depenseForm.montant), date: depenseForm.date,
+        categorie: depenseForm.categorie,
+      });
+      setDepenses(prev => [res.data, ...prev]);
+      setDepenseForm({ libelle: '', montant: '', date: new Date().toISOString().split('T')[0], categorie: 'AUTRE' });
+    } catch {
+      setDepenseError("Erreur lors de l'enregistrement.");
+    } finally {
+      setSavingDepense(false);
+    }
+  };
+
+  const handleDeleteDepense = async (depenseId: number) => {
+    if (!window.confirm('Supprimer cette dépense ?')) return;
+    await axiosInstance.delete(`depenses/${depenseId}/`);
+    setDepenses(prev => prev.filter(d => d.id !== depenseId));
+  };
 
   const filtered = compartiments.filter(c => {
     const typeOk = filter === 'Tous' || c.type === filter;
@@ -136,16 +190,25 @@ const LogementDetailsPage: React.FC = () => {
           {/* Controls */}
           <div className="ld-controls g-animate g-animate--1">
             <IonSearchbar
+              className="ld-search"
               value={search}
               onIonInput={e => setSearch(e.detail.value!)}
               placeholder="Rechercher…"
             />
-            <button
-              className="ld-add-btn"
-              onClick={() => history.push(`/logement/${id}/ajouter-compartiment`)}
-            >
-              + Compartiment
-            </button>
+            <div className="ld-actions-row">
+              <button
+                className="ld-add-btn"
+                onClick={() => history.push(`/logement/${id}/ajouter-compartiment`)}
+              >
+                + Compartiment
+              </button>
+              <button className="ld-add-btn ld-add-btn--outline" onClick={() => setShowDepenses(true)}>
+                💰 Dépenses{depenses.length > 0 ? ` (${totalDepenses.toLocaleString('fr-FR')} F)` : ''}
+              </button>
+              <button className="ld-add-btn ld-add-btn--outline" onClick={() => setShowDocuments(true)}>
+                📎 Documents
+              </button>
+            </div>
           </div>
 
           <select className="ld-filter g-animate g-animate--1"
@@ -185,8 +248,16 @@ const LogementDetailsPage: React.FC = () => {
                     {c.chambres > 0 && <span className="ld-room-pill">🛏 {c.chambres} ch.</span>}
                     {c.salons   > 0 && <span className="ld-room-pill">🛋 {c.salons} sal.</span>}
                     {c.douches  > 0 && <span className="ld-room-pill">🚿 {c.douches} dch.</span>}
-                    {c.cuisines > 0 && <span className="ld-room-pill">🍳 {c.cuisines} cui.</span>}
+                    {c.cuisines > 0 && <span className="ld-room-pill">🍳 {c.cuisines > 1 ? `${c.cuisines} cuisines` : 'cuisine'}</span>}
+                    {c.mezzanine && <span className="ld-room-pill">🏗 mezzanine</span>}
                   </div>
+
+                  {/* Loyer de référence (utile surtout tant que le compartiment est libre) */}
+                  {c.loyer_reference && !c.occupant_actuel && (
+                    <p className="ld-loyer-ref">
+                      Loyer demandé : <strong>{parseFloat(c.loyer_reference).toLocaleString('fr-FR')} FCFA/mois</strong>
+                    </p>
+                  )}
 
                   {/* Occupant actuel */}
                   {c.occupant_actuel ? (
@@ -201,19 +272,37 @@ const LogementDetailsPage: React.FC = () => {
                           {' · Prochain : '}{new Date(c.occupant_actuel.date_prochain_paiement).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
-                      <button
-                        className="g-btn g-btn--danger ld-liberer-btn"
-                        onClick={() => handleLiberer(c.occupant_actuel!.id, c.occupant_actuel!.nom_complet)}
-                      >
-                        🚪 Départ
-                      </button>
+                      <div className="ld-occupant__btns">
+                        <button
+                          className="g-btn g-btn--outline ld-liberer-btn"
+                          onClick={() => history.push('/etat-des-lieux/nouveau', {
+                            occupantId: c.occupant_actuel!.id,
+                            occupantNom: c.occupant_actuel!.nom_complet,
+                          })}
+                        >
+                          📝 État des lieux
+                        </button>
+                        <button
+                          className="g-btn g-btn--danger ld-liberer-btn"
+                          onClick={() => handleLiberer(c.occupant_actuel!.id, c.occupant_actuel!.nom_complet)}
+                        >
+                          🚪 Départ
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="ld-libre-msg">
                       <span>🔓 Compartiment libre</span>
                       <button
                         className="g-btn g-btn--primary ld-assign-btn"
-                        onClick={() => history.push('/ajouter-locataire')}
+                        onClick={() => history.push('/ajouter-locataire', {
+                          preselectLogementId: logement!.id,
+                          preselectLogementNom: logement!.nom,
+                          preselectCompartimentId: c.id,
+                          preselectCompartimentNom: c.nom,
+                          preselectCompartimentType: c.type,
+                          preselectLoyerReference: c.loyer_reference,
+                        })}
                       >
                         + Assigner
                       </button>
@@ -298,6 +387,118 @@ const LogementDetailsPage: React.FC = () => {
             )}
           </div>
         </IonModal>
+
+        {/* Modal Documents */}
+        <IonModal isOpen={showDocuments} onDidDismiss={() => setShowDocuments(false)}>
+          <div className="dep-modal">
+            <div className="hist-modal__head">
+              <div>
+                <p className="hist-modal__title">Documents & Pièces jointes</p>
+                <p className="hist-modal__comp">{logement?.nom}</p>
+              </div>
+              <button className="pay-modal__close" onClick={() => setShowDocuments(false)}>✕</button>
+            </div>
+            {id && <DocumentsSection logementId={parseInt(id)} />}
+          </div>
+        </IonModal>
+
+        {/* Modal Dépenses */}
+        <IonModal isOpen={showDepenses} onDidDismiss={() => setShowDepenses(false)}>
+          <div className="dep-modal">
+            <div className="hist-modal__head">
+              <div>
+                <p className="hist-modal__title">Dépenses</p>
+                <p className="hist-modal__comp">{logement?.nom}</p>
+              </div>
+              <button className="pay-modal__close" onClick={() => setShowDepenses(false)}>✕</button>
+            </div>
+
+            {depenses.length > 0 && (
+              <div className="dep-total">
+                Total enregistré <strong>{totalDepenses.toLocaleString('fr-FR')} FCFA</strong>
+              </div>
+            )}
+
+            <div className="dep-form">
+              {depenseError && <p className="tf-error">⚠ {depenseError}</p>}
+              <div className="g-input-group">
+                <label className="g-label">Libellé</label>
+                <input
+                  className="g-input" placeholder="Ex : Réparation plomberie"
+                  value={depenseForm.libelle}
+                  onChange={e => setDepenseForm(f => ({ ...f, libelle: e.target.value }))}
+                />
+              </div>
+              <div className="dep-form__row">
+                <div className="g-input-group">
+                  <label className="g-label">Montant (FCFA)</label>
+                  <input
+                    className="g-input" type="number" inputMode="numeric" placeholder="0"
+                    value={depenseForm.montant}
+                    onChange={e => setDepenseForm(f => ({ ...f, montant: e.target.value }))}
+                  />
+                </div>
+                <div className="g-input-group">
+                  <label className="g-label">Date</label>
+                  <input
+                    className="g-input" type="date"
+                    value={depenseForm.date}
+                    onChange={e => setDepenseForm(f => ({ ...f, date: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="g-input-group">
+                <label className="g-label">Catégorie</label>
+                <select
+                  className="g-input" value={depenseForm.categorie}
+                  onChange={e => setDepenseForm(f => ({ ...f, categorie: e.target.value }))}
+                >
+                  {Object.entries(CATEGORIE_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <button className="g-btn g-btn--primary" onClick={handleAddDepense} disabled={savingDepense}>
+                {savingDepense ? 'Enregistrement…' : '+ Ajouter la dépense'}
+              </button>
+            </div>
+
+            <div className="g-divider" />
+
+            {depenses.length === 0 ? (
+              <div className="g-empty">
+                <div className="g-empty__icon">💰</div>
+                <p className="g-empty__text">Aucune dépense enregistrée pour ce logement</p>
+              </div>
+            ) : (
+              <div className="dep-list">
+                {depenses.map(d => (
+                  <div key={d.id} className="dep-card">
+                    <div className="dep-card__info">
+                      <p className="dep-card__libelle">{d.libelle}</p>
+                      <p className="dep-card__meta">
+                        {CATEGORIE_LABEL[d.categorie] || d.categorie} · {new Date(d.date).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                    <div className="dep-card__right">
+                      <p className="dep-card__montant">{parseFloat(d.montant).toLocaleString('fr-FR')} F</p>
+                      <button className="dep-card__delete" onClick={() => handleDeleteDepense(d.id)}>🗑</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </IonModal>
+
+        <IonToast
+          isOpen={showToast}
+          message={location.state?.flashMessage || ''}
+          duration={2500}
+          position="top"
+          color="success"
+          onDidDismiss={() => setShowToast(false)}
+        />
       </IonContent>
     </IonPage>
   );

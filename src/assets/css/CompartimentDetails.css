@@ -3,9 +3,10 @@
 .compartiment-details-content { --background: var(--g-bg); }
 
 .cd-hero {
-  background: linear-gradient(135deg, #151512 0%, #0F0F0C 100%);
-  border: 1px solid rgba(201,168,76,0.2);
+  background: linear-gradient(135deg, var(--g-accent-soft), var(--g-surface));
+  border: 1px solid rgba(79,70,229,0.2);
   border-radius: var(--g-radius);
+  box-shadow: var(--g-shadow);
   padding: 24px 20px;
   margin-bottom: 20px;
   position: relative; overflow: hidden;

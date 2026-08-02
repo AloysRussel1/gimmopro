@@ -22,7 +22,7 @@
 .login-logo__mark {
   width: 48px; height: 48px; background: var(--g-gold);
   border-radius: 14px; display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-size: 26px; font-weight: 700; color: #0A0A0F;
+  font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--g-accent-ink);
 }
 .login-logo__name {
   font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--g-text);
@@ -36,6 +36,13 @@
   border-radius: var(--g-radius-lg); padding: 28px 24px;
   display: flex; flex-direction: column;
 }
+
+.login-pass-label-row { display: flex; justify-content: space-between; align-items: center; }
+.login-forgot-link {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 11px; font-weight: 600; color: var(--g-gold) !important;
+}
+.login-forgot-link:active { opacity: 0.7; }
 
 /* Champ mot de passe avec œil */
 .login-pass-wrap {
