@@ -22,6 +22,11 @@ import EtatDesLieuxForm from './pages/EtatDesLieuxForm';
 import PaymentManagement from './pages/PaymentManagement';
 import PaymentHistory from './pages/PaymentHistory';
 import ProfilePage from './pages/ProfilePage';
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminData from './pages/admin/AdminData';
+import AdminLogs from './pages/admin/AdminLogs';
 import { isAuthenticated } from './api/auth';
 
 import '@ionic/react/css/core.css';
@@ -75,6 +80,11 @@ const App: React.FC = () => (
           <PrivateRoute path="/paiement"   component={PaymentManagement} exact />
           <PrivateRoute path="/historique/:id" component={PaymentHistory} exact />
           <PrivateRoute path="/profil" component={ProfilePage} exact />
+
+          <AdminRoute path="/admin"       component={AdminDashboard} exact />
+          <AdminRoute path="/admin/users" component={AdminUsers}     exact />
+          <AdminRoute path="/admin/data"  component={AdminData}      exact />
+          <AdminRoute path="/admin/logs"  component={AdminLogs}      exact />
 
           <Route exact path="/">
             {isAuthenticated() ? <Redirect to="/dashboard" /> : <LandingPage />}

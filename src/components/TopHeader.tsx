@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import { FiChevronDown, FiSettings, FiLogOut, FiPlus, FiHome, FiUser, FiCreditCard, FiBell } from 'react-icons/fi';
+import { FiChevronDown, FiSettings, FiLogOut, FiPlus, FiHome, FiUser, FiCreditCard, FiBell, FiShield } from 'react-icons/fi';
 import axiosInstance from '../api/axiosConfig';
 import { isAuthenticated, logout } from '../api/auth';
 import '../assets/css/TopHeader.css';
 
-interface Profile { nom: string; email: string; username: string; }
+interface Profile { nom: string; email: string; username: string; is_staff?: boolean; }
 
 const QUICK_ACTIONS = [
   { icon: FiHome,       label: 'Nouveau logement',          path: '/ajouter-logement' },
@@ -99,6 +99,11 @@ const TopHeader: React.FC = () => {
             <button className="top-header__dropdown-item" onClick={() => go('/profil')}>
               <FiSettings /> Profil bailleur
             </button>
+            {profile?.is_staff && (
+              <button className="top-header__dropdown-item" onClick={() => go('/admin')}>
+                <FiShield /> Administration
+              </button>
+            )}
             <button className="top-header__dropdown-item top-header__dropdown-item--danger" onClick={logout}>
               <FiLogOut /> Déconnexion
             </button>

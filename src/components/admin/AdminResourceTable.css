@@ -1,0 +1,46 @@
+@import '../../assets/css/theme.css';
+
+.admin-resource { margin-bottom: 8px; }
+
+.admin-resource__head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; gap: 12px;
+}
+.admin-resource__title { font-size: 16px; font-weight: 700; color: var(--g-text) !important; }
+.admin-resource__count { font-weight: 400; color: var(--g-text-3); font-size: 13px; }
+.admin-resource__add { width: auto !important; padding: 10px 16px; white-space: nowrap; }
+
+.admin-table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--g-border); border-radius: var(--g-radius);
+  background: var(--g-surface);
+}
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.admin-table th {
+  text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--g-text-3); background: var(--g-surface-2);
+  border-bottom: 1px solid var(--g-border);
+}
+.admin-table td {
+  padding: 10px 14px; color: var(--g-text);
+  border-bottom: 1px solid var(--g-border);
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table__actions-col { width: 1%; }
+.admin-table__actions { display: flex; gap: 6px; }
+.admin-table__btn {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: 8px; width: 32px; height: 32px; font-size: 13px; cursor: pointer;
+}
+.admin-table__btn--danger { background: var(--g-danger-dim); border-color: rgba(220,38,38,0.2); }
+
+.admin-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 14px;
+}
+.admin-pagination__btn { width: auto !important; padding: 8px 14px; font-size: 12.5px; }
+.admin-pagination__label { font-size: 12.5px; color: var(--g-text-3); }
+
+.admin-form-modal { background: var(--g-surface); min-height: 100%; padding: 28px 20px 48px; overflow-y: auto; }
+.admin-form-modal__textarea { min-height: 90px; resize: vertical; font-family: var(--font-body); }
