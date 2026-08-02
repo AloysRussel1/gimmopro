@@ -23,8 +23,14 @@ const Login: React.FC = () => {
       localStorage.setItem('access_token',  res.data.access);
       localStorage.setItem('refresh_token', res.data.refresh);
       history.replace('/dashboard');
-    } catch {
-      setError('Identifiants incorrects.');
+    } catch (err: any) {
+      // Affiche le message exact renvoyé par le backend quand il y en a un
+      // (ex: "No active account found with the given credentials" de
+      // SimpleJWT, ou "Aucun compte actif..." si un jour on le personnalise)
+      // plutôt qu'un message générique qui masquerait la vraie cause
+      // (mauvais mot de passe vs compte non vérifié vs erreur réseau/serveur).
+      const detail = err?.response?.data?.detail;
+      setError(detail || 'Identifiants incorrects. Vérifiez votre email et votre mot de passe.');
     } finally {
       setLoading(false);
     }

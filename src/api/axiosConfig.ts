@@ -53,7 +53,16 @@ axiosInstance.interceptors.response.use(
     console.error("Détail de l'erreur API :", error.response?.data || error.message);
 
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    // Un 401 sur la connexion elle-même veut juste dire "mauvais identifiants"
+    // — ce n'est PAS un token expiré à rafraîchir. Sans cette exclusion, un
+    // login raté déclenchait une tentative de refresh (qui échoue aussi,
+    // puisqu'on n'a pas encore de session), qui elle-même faisait un
+    // window.location.href = '/login' -> rechargement complet de la page,
+    // qui efface la console ET empêche le vrai message d'erreur de s'afficher.
+    const isAuthEndpoint = typeof original?.url === 'string' &&
+      (original.url.includes('auth/login') || original.url.includes('auth/refresh'));
+
+    if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
         const refresh = localStorage.getItem('refresh_token');
