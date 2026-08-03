@@ -41,8 +41,9 @@ const Register: React.FC = () => {
       // Le compte est créé inactif côté backend : pas de JWT à cette étape,
       // il faut confirmer l'email avant de pouvoir se connecter.
       await axiosInstance.post('auth/register/', {
-        email:    form.email,
-        password: form.password,
+        email:         form.email,
+        password:      form.password,
+        accept_terms:  acceptTerms,
       });
       setSent(true);
     } catch (err: any) {
