@@ -6,6 +6,7 @@ import {
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
+import { previewPdf, downloadPdf } from '../utils/pdf';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
@@ -111,6 +112,22 @@ const TenantManagement: React.FC = () => {
       window.alert(e.response?.data?.error || "Erreur lors de l'envoi du reçu.");
     } finally {
       setSendingCautionId(null);
+    }
+  };
+
+  const handlePreviewRecuCaution = async (o: Occupant) => {
+    try {
+      await previewPdf(`occupants/${o.id}/caution/recu/`);
+    } catch {
+      window.alert("Impossible d'afficher le reçu. Renseignez le montant et la date de versement de la caution.");
+    }
+  };
+
+  const handleDownloadRecuCaution = async (o: Occupant) => {
+    try {
+      await downloadPdf(`occupants/${o.id}/caution/recu/`, `recu_caution_${o.id}.pdf`);
+    } catch {
+      window.alert("Impossible de télécharger le reçu. Renseignez le montant et la date de versement de la caution.");
     }
   };
 
@@ -240,18 +257,28 @@ const TenantManagement: React.FC = () => {
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => { setDocsOccupant(o); setShowDocs(true); }}>
                       📎 Documents
                     </button>
-                    <button
-                      className="g-btn g-btn--outline tenant-btn"
-                      disabled={!(parseFloat(o.caution_versee) > 0 && o.date_versement_caution) || sendingCautionId === o.id}
-                      title={
-                        parseFloat(o.caution_versee) > 0 && o.date_versement_caution
-                          ? 'Envoyer le reçu de caution par email'
-                          : "Renseignez d'abord le montant et la date de versement de la caution (bouton Modifier)"
-                      }
-                      onClick={() => handleEnvoyerRecuCaution(o)}
-                    >
-                      {sendingCautionId === o.id ? '⏳ Envoi…' : '🧾 Reçu caution'}
-                    </button>
+                    {(() => {
+                      const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
+                      const cautionTitle = cautionPrete
+                        ? undefined
+                        : "Renseignez d'abord le montant et la date de versement de la caution (bouton Modifier)";
+                      return (
+                        <>
+                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete} title={cautionTitle || 'Aperçu du reçu de caution'}
+                            onClick={() => handlePreviewRecuCaution(o)}>
+                            👁 Aperçu caution
+                          </button>
+                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete} title={cautionTitle || 'Télécharger le reçu de caution'}
+                            onClick={() => handleDownloadRecuCaution(o)}>
+                            ⬇️ Reçu caution
+                          </button>
+                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete || sendingCautionId === o.id} title={cautionTitle || 'Envoyer le reçu de caution par email'}
+                            onClick={() => handleEnvoyerRecuCaution(o)}>
+                            {sendingCautionId === o.id ? '⏳ Envoi…' : '✉️ Envoyer reçu'}
+                          </button>
+                        </>
+                      );
+                    })()}
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleLiberer(o.id, o.nom_complet)}>
                       🚪 Départ
                     </button>

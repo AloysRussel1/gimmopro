@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Route, Redirect } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -57,7 +58,27 @@ const PrivateRoute: React.FC<{ component: React.FC; path: string; exact?: boolea
   />
 );
 
-const App: React.FC = () => (
+const App: React.FC = () => {
+  useEffect(() => {
+    // <input type="number"> change de valeur (incrémente/décrémente) au
+    // simple survol + molette, sans que l'utilisateur ait rien tapé --
+    // c'est le mécanisme le plus probable derrière des montants (loyer,
+    // caution, paiement) qui semblent "changer tout seuls" de quelques
+    // unités. On retire le focus dès qu'une molette est utilisée sur un
+    // champ numérique, pour laisser la page défiler normalement au lieu
+    // de modifier la valeur -- un seul listener global couvre tous les
+    // champs numériques de l'app, présents et futurs.
+    const handler = (e: WheelEvent) => {
+      const target = document.activeElement;
+      if (target instanceof HTMLInputElement && target.type === 'number') {
+        target.blur();
+      }
+    };
+    document.addEventListener('wheel', handler, { passive: true });
+    return () => document.removeEventListener('wheel', handler);
+  }, []);
+
+  return (
   <IonApp>
     <IonReactRouter>
       <TopHeader />
@@ -97,6 +118,7 @@ const App: React.FC = () => (
       </div>
     </IonReactRouter>
   </IonApp>
-);
+  );
+};
 
 export default App;

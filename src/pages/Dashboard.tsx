@@ -8,6 +8,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import axiosInstance from '../api/axiosConfig';
 import { openWhatsApp } from '../utils/whatsapp';
+import { previewPdf, downloadPdf } from '../utils/pdf';
 import '../assets/css/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -101,14 +102,15 @@ const Dashboard: React.FC = () => {
   const downloadRapport = async (m: number, a: number) => {
     setDlLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      const url   = `${axiosInstance.defaults.baseURL}rapports/mensuel/?mois=${m}&annee=${a}`;
-      const res   = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      const blob  = await res.blob();
-      const link  = document.createElement('a');
-      link.href   = URL.createObjectURL(blob);
-      link.download = `rapport_${MOIS[m]}_${a}.pdf`;
-      link.click();
+      await downloadPdf(`rapports/mensuel/?mois=${m}&annee=${a}`, `rapport_${MOIS[m]}_${a}.pdf`);
+    } catch (e) { console.error(e); }
+    finally { setDlLoading(false); }
+  };
+
+  const previewRapport = async (m: number, a: number) => {
+    setDlLoading(true);
+    try {
+      await previewPdf(`rapports/mensuel/?mois=${m}&annee=${a}`);
     } catch (e) { console.error(e); }
     finally { setDlLoading(false); }
   };
@@ -369,13 +371,23 @@ const Dashboard: React.FC = () => {
                     <p className="dash-rapport__title">📋 Rapport mensuel</p>
                     <p className="dash-rapport__sub">{MOIS[mois]} {annee}</p>
                   </div>
-                  <button
-                    className="dash-rapport__btn"
-                    onClick={() => downloadRapport(mois, annee)}
-                    disabled={dlLoading}
-                  >
-                    {dlLoading ? '⏳' : '⬇️ PDF'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      className="dash-rapport__btn"
+                      onClick={() => previewRapport(mois, annee)}
+                      disabled={dlLoading}
+                      title="Prévisualiser le rapport dans un nouvel onglet"
+                    >
+                      {dlLoading ? '⏳' : '👁 Aperçu'}
+                    </button>
+                    <button
+                      className="dash-rapport__btn"
+                      onClick={() => downloadRapport(mois, annee)}
+                      disabled={dlLoading}
+                    >
+                      {dlLoading ? '⏳' : '⬇️ PDF'}
+                    </button>
+                  </div>
                 </div>
                 <button
                   className="dash-rapport__prev"
