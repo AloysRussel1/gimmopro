@@ -63,14 +63,14 @@ const LandingPage: React.FC = () => {
         {/* Hero */}
         <section className="lp-hero">
           <div className="lp-badge g-animate g-animate--1">
-            <span>✨</span> Conçu pour les propriétaires camerounais
+            <span>✨</span> Conçu pour les propriétaires indépendants
           </div>
           <h1 className="lp-headline g-animate g-animate--2">
-            La gestion locative,<br />enfin simple.
+            Gérez vos biens immobiliers<br />en toute simplicité.
           </h1>
           <p className="lp-sub g-animate g-animate--3">
-            Gimmopro centralise vos logements, vos locataires et vos paiements —
-            contrats et reçus générés automatiquement, retards de loyer suivis en temps réel.
+            Conçu pour simplifier la gestion des logements, baux, quittances et suivis
+            financiers des propriétaires indépendants.
           </p>
           <div className="lp-cta-row g-animate g-animate--4">
             <button className="g-btn g-btn--primary lp-cta lp-cta--arrow" onClick={() => history.push('/register')}>
