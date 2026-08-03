@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle,
-  IonContent, IonSearchbar, IonModal,
+  IonContent, IonSearchbar, IonModal, IonActionSheet,
 } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
@@ -38,6 +38,11 @@ const TenantManagement: React.FC = () => {
 
   // Envoi du reçu de caution
   const [sendingCautionId, setSendingCautionId] = useState<number | null>(null);
+
+  // Menu d'actions secondaires (bottom sheet) -- déclenché par le bouton ⋮
+  // sur chaque carte, pour ne garder que l'action principale visible en
+  // permanence sur mobile (voir tenant-card__actions plus bas).
+  const [actionsFor, setActionsFor] = useState<Occupant | null>(null);
 
   const history  = useHistory();
   const location = useLocation<{ openEditOccupantId?: number }>();
@@ -248,42 +253,18 @@ const TenantManagement: React.FC = () => {
                   </div>
 
                   <div className="tenant-card__actions">
-                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => openEdit(o)}>
-                      ✏️ Modifier
+                    <button
+                      className="g-btn g-btn--primary tenant-btn-primary"
+                      onClick={() => history.push('/paiement', { openOccupantId: o.id })}
+                    >
+                      💳 Paiement
                     </button>
-                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleContrat(o.id)}>
-                      📄 Contrat
-                    </button>
-                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => { setDocsOccupant(o); setShowDocs(true); }}>
-                      📎 Documents
-                    </button>
-                    {(() => {
-                      const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
-                      const cautionTitle = cautionPrete
-                        ? undefined
-                        : "Renseignez d'abord le montant et la date de versement de la caution (bouton Modifier)";
-                      return (
-                        <>
-                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete} title={cautionTitle || 'Aperçu du reçu de caution'}
-                            onClick={() => handlePreviewRecuCaution(o)}>
-                            👁 Aperçu caution
-                          </button>
-                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete} title={cautionTitle || 'Télécharger le reçu de caution'}
-                            onClick={() => handleDownloadRecuCaution(o)}>
-                            ⬇️ Reçu caution
-                          </button>
-                          <button className="g-btn g-btn--outline tenant-btn" disabled={!cautionPrete || sendingCautionId === o.id} title={cautionTitle || 'Envoyer le reçu de caution par email'}
-                            onClick={() => handleEnvoyerRecuCaution(o)}>
-                            {sendingCautionId === o.id ? '⏳ Envoi…' : '✉️ Envoyer reçu'}
-                          </button>
-                        </>
-                      );
-                    })()}
-                    <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleLiberer(o.id, o.nom_complet)}>
-                      🚪 Départ
-                    </button>
-                    <button className="g-btn g-btn--danger tenant-btn" onClick={() => handleDelete(o.id, o.nom_complet)}>
-                      🗑
+                    <button
+                      className="tenant-kebab"
+                      aria-label="Plus d'actions"
+                      onClick={() => setActionsFor(o)}
+                    >
+                      ⋮
                     </button>
                   </div>
                 </div>
@@ -362,6 +343,30 @@ const TenantManagement: React.FC = () => {
             {docsOccupant && <DocumentsSection occupantId={docsOccupant.id} />}
           </div>
         </IonModal>
+
+        {/* Actions secondaires -- tiroir natif remontant du bas sur mobile,
+            regroupe tout ce qui n'est pas l'action principale de la carte. */}
+        <IonActionSheet
+          isOpen={!!actionsFor}
+          onDidDismiss={() => setActionsFor(null)}
+          header={actionsFor?.nom_complet}
+          buttons={actionsFor ? (() => {
+            const o = actionsFor;
+            const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
+            const cautionLabel = (label: string) => cautionPrete ? label : `${label} (renseignez d'abord la caution)`;
+            return [
+              { text: '✏️ Modifier',              handler: () => openEdit(o) },
+              { text: '📄 Voir le contrat',        handler: () => handleContrat(o.id) },
+              { text: '📎 Documents',              handler: () => { setDocsOccupant(o); setShowDocs(true); } },
+              { text: cautionLabel('👁 Aperçu reçu caution'),     disabled: !cautionPrete, handler: () => handlePreviewRecuCaution(o) },
+              { text: cautionLabel('⬇️ Télécharger reçu caution'), disabled: !cautionPrete, handler: () => handleDownloadRecuCaution(o) },
+              { text: cautionLabel(sendingCautionId === o.id ? '⏳ Envoi du reçu…' : '✉️ Envoyer reçu caution'), disabled: !cautionPrete || sendingCautionId === o.id, handler: () => handleEnvoyerRecuCaution(o) },
+              { text: '🚪 Marquer le départ',       handler: () => handleLiberer(o.id, o.nom_complet) },
+              { text: '🗑 Supprimer',               role: 'destructive' as const, handler: () => handleDelete(o.id, o.nom_complet) },
+              { text: 'Annuler',                   role: 'cancel' as const },
+            ];
+          })() : []}
+        />
       </IonContent>
     </IonPage>
   );

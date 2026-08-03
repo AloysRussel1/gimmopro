@@ -56,8 +56,19 @@
 .tenant-detail__value--gold { color: var(--g-gold) !important; }
 .tenant-detail__value--red  { color: var(--g-danger) !important; }
 
-.tenant-card__actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.tenant-btn { flex: 1; padding: 9px 6px; font-size: 11px; min-width: 60px; min-height: 44px; }
+/* Une seule action visible en permanence (paiement) + un menu ⋮ pour tout
+   le reste -- volontairement minimal pour rester lisible et facile à
+   tapoter sur mobile (voir IonActionSheet plus bas dans le composant). */
+.tenant-card__actions { display: flex; gap: 8px; align-items: stretch; }
+.tenant-btn-primary { flex: 1; padding: 12px 6px; font-size: 13px; min-height: 46px; }
+.tenant-kebab {
+  flex-shrink: 0; width: 46px; min-height: 46px;
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm); color: var(--g-text) !important;
+  font-size: 20px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.tenant-kebab:active { background: var(--g-gold-dim); }
 
 /* Modal modification */
 .edit-modal {
