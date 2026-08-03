@@ -11,7 +11,8 @@ import '../assets/css/TenantManagement.css';
 interface Occupant {
   id: number; nom_complet: string; telephone: string; email: string;
   cni: string; numero_contrat: string; date_debut_contrat: string; date_fin_contrat: string | null;
-  loyer: string; caution_versee: string; date_prochain_paiement: string; statut: string; actif: boolean;
+  loyer: string; caution_versee: string; date_versement_caution: string | null;
+  date_prochain_paiement: string; statut: string; actif: boolean;
   compartiment: number | null; compartiment_nom: string;
   logement: number | null; logement_nom: string; logement_loc: string;
 }
@@ -33,6 +34,9 @@ const TenantManagement: React.FC = () => {
   // Modal documents
   const [showDocs,   setShowDocs]   = useState(false);
   const [docsOccupant, setDocsOccupant] = useState<Occupant | null>(null);
+
+  // Envoi du reçu de caution
+  const [sendingCautionId, setSendingCautionId] = useState<number | null>(null);
 
   const history  = useHistory();
   const location = useLocation<{ openEditOccupantId?: number }>();
@@ -90,11 +94,24 @@ const TenantManagement: React.FC = () => {
       email:                  o.email,
       loyer:                  o.loyer,
       caution_versee:         o.caution_versee,
+      date_versement_caution: o.date_versement_caution,
       date_prochain_paiement: o.date_prochain_paiement,
       date_fin_contrat:       o.date_fin_contrat,
     });
     setEditError('');
     setShowEdit(true);
+  };
+
+  const handleEnvoyerRecuCaution = async (o: Occupant) => {
+    setSendingCautionId(o.id);
+    try {
+      const res = await axiosInstance.post(`occupants/${o.id}/caution/envoyer/`);
+      window.alert(res.data.message || 'Reçu envoyé.');
+    } catch (e: any) {
+      window.alert(e.response?.data?.error || "Erreur lors de l'envoi du reçu.");
+    } finally {
+      setSendingCautionId(null);
+    }
   };
 
   // Ouvre directement la modale de modification quand on arrive depuis le
@@ -223,6 +240,18 @@ const TenantManagement: React.FC = () => {
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => { setDocsOccupant(o); setShowDocs(true); }}>
                       📎 Documents
                     </button>
+                    <button
+                      className="g-btn g-btn--outline tenant-btn"
+                      disabled={!(parseFloat(o.caution_versee) > 0 && o.date_versement_caution) || sendingCautionId === o.id}
+                      title={
+                        parseFloat(o.caution_versee) > 0 && o.date_versement_caution
+                          ? 'Envoyer le reçu de caution par email'
+                          : "Renseignez d'abord le montant et la date de versement de la caution (bouton Modifier)"
+                      }
+                      onClick={() => handleEnvoyerRecuCaution(o)}
+                    >
+                      {sendingCautionId === o.id ? '⏳ Envoi…' : '🧾 Reçu caution'}
+                    </button>
                     <button className="g-btn g-btn--outline tenant-btn" onClick={() => handleLiberer(o.id, o.nom_complet)}>
                       🚪 Départ
                     </button>
@@ -270,6 +299,11 @@ const TenantManagement: React.FC = () => {
               <label className="g-label">Dépôt de garantie / Caution versée (FCFA)</label>
               <input className="g-input" type="number" inputMode="numeric" value={editData.caution_versee ?? ''}
                 onChange={e => setEditData(d => ({ ...d, caution_versee: e.target.value }))} />
+            </div>
+            <div className="g-input-group">
+              <label className="g-label">Date de versement de la caution <span className="tf-optional">(optionnel)</span></label>
+              <input className="g-input" type="date" value={editData.date_versement_caution || ''}
+                onChange={e => setEditData(d => ({ ...d, date_versement_caution: e.target.value || null }))} />
             </div>
             <div className="g-input-group">
               <label className="g-label">Prochain paiement</label>

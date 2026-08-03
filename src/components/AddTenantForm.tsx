@@ -52,6 +52,7 @@ const AddTenantForm: React.FC = () => {
     date_fin_contrat:       '',
     loyer:                  preselect?.preselectLoyerReference ? String(preselect.preselectLoyerReference) : '',
     caution:                '',
+    date_versement_caution: '',
     date_prochain_paiement: '',
   });
 
@@ -111,6 +112,7 @@ const AddTenantForm: React.FC = () => {
         date_fin_contrat:       form.date_fin_contrat || null,
         loyer:                  parseFloat(form.loyer),
         caution_versee:         form.caution ? parseFloat(form.caution) : 0,
+        date_versement_caution: form.date_versement_caution || null,
         date_prochain_paiement: form.date_prochain_paiement,
         statut:                 'Actif',
         actif:                  true,
@@ -271,6 +273,13 @@ const AddTenantForm: React.FC = () => {
                 <input className="g-input" type="number" inputMode="numeric" placeholder="0"
                   value={form.caution}
                   onChange={e => set('caution', e.target.value)} />
+              </div>
+
+              <div className="g-input-group">
+                <label className="g-label">Date de versement de la caution <span className="tf-optional">(optionnel)</span></label>
+                <input className="g-input" type="date"
+                  value={form.date_versement_caution}
+                  onChange={e => set('date_versement_caution', e.target.value)} />
               </div>
 
               <div className="g-input-group">

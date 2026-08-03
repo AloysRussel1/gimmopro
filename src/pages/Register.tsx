@@ -8,6 +8,7 @@ const Register: React.FC = () => {
   const [form, setForm] = useState({
     email: '', password: '', confirm: '',
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent]       = useState(false);
@@ -29,6 +30,10 @@ const Register: React.FC = () => {
     }
     if (form.password.length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères.'); return;
+    }
+    if (!acceptTerms) {
+      setError("Vous devez accepter les conditions d'utilisation et la politique de confidentialité.");
+      return;
     }
 
     setLoading(true); setError('');
@@ -136,6 +141,25 @@ const Register: React.FC = () => {
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
                 </div>
+
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'var(--g-text-2)', lineHeight: 1.5, margin: '4px 0 16px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={e => { setAcceptTerms(e.target.checked); setError(''); }}
+                    style={{ marginTop: '2px', flexShrink: 0 }}
+                  />
+                  <span>
+                    J'accepte les{' '}
+                    <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-accent)', fontWeight: 600 }}>
+                      conditions d'utilisation
+                    </a>{' '}
+                    et la{' '}
+                    <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-accent)', fontWeight: 600 }}>
+                      politique de confidentialité
+                    </a>
+                  </span>
+                </label>
 
                 {error && <p className="login-error">{error}</p>}
 

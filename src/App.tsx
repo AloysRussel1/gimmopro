@@ -10,6 +10,8 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
+import Cgu from './pages/Cgu';
+import Confidentialite from './pages/Confidentialite';
 import Dashboard from './pages/Dashboard';
 import LogementPage from './pages/LogementPage';
 import LogementDetails from './pages/LogementDetails';
@@ -67,6 +69,8 @@ const App: React.FC = () => (
           <Route path="/mot-de-passe-oublie" component={ForgotPassword} exact />
           <Route path="/reinitialiser-mot-de-passe" component={ResetPassword} exact />
           <Route path="/verifier-email" component={VerifyEmail} exact />
+          <Route path="/cgu" component={Cgu} exact />
+          <Route path="/confidentialite" component={Confidentialite} exact />
 
           <PrivateRoute path="/dashboard"  component={Dashboard}   exact />
           <PrivateRoute path="/logement"   component={LogementPage} exact />

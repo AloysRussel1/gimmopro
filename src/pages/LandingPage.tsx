@@ -131,8 +131,8 @@ const LandingPage: React.FC = () => {
             <div className="lp-footer__col">
               <p className="lp-footer__heading">Support &amp; Légal</p>
               <a className="lp-footer__link" href="#" onClick={e => e.preventDefault()}>Centre d'aide</a>
-              <a className="lp-footer__link" href="#" onClick={e => e.preventDefault()}>Conditions d'utilisation</a>
-              <a className="lp-footer__link" href="#" onClick={e => e.preventDefault()}>Politique de confidentialité</a>
+              <a className="lp-footer__link" href="/cgu" onClick={e => { e.preventDefault(); history.push('/cgu'); }}>Conditions d'utilisation</a>
+              <a className="lp-footer__link" href="/confidentialite" onClick={e => { e.preventDefault(); history.push('/confidentialite'); }}>Politique de confidentialité</a>
               <a className="lp-footer__link" href="#" onClick={e => e.preventDefault()}>Contact</a>
             </div>
           </div>
