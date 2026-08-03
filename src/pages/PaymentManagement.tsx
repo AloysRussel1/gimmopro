@@ -7,6 +7,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { FiSend } from 'react-icons/fi';
 import axiosInstance from '../api/axiosConfig';
 import SendReceiptModal from '../components/SendReceiptModal';
+import { downloadFile } from '../utils/pdf';
 import '../assets/css/PaymentManagement.css';
 
 interface Occupant {
@@ -41,6 +42,12 @@ const PaymentManagement: React.FC = () => {
   const [saving,     setSaving]     = useState(false);
   const [form, setForm] = useState({ nombre_mois: '1', montant: '', date_debut: '', date_paiement: new Date().toISOString().split('T')[0], note: '', mode_paiement: 'ESPECES' });
   const [sendTarget, setSendTarget] = useState<{ occupant: Occupant; paiement: Paiement } | null>(null);
+
+  // Export comptable (Excel / CSV)
+  const anneeActuelle = new Date().getFullYear();
+  const [exportType,  setExportType]  = useState<'paiements' | 'depenses' | 'recapitulatif'>('paiements');
+  const [exportAnnee, setExportAnnee] = useState(String(anneeActuelle));
+  const [exporting,   setExporting]   = useState(false);
 
   useEffect(() => {
     Promise.all([axiosInstance.get('occupants/'), axiosInstance.get('paiements/')])
@@ -98,6 +105,25 @@ const PaymentManagement: React.FC = () => {
     finally { setSaving(false); }
   };
 
+  const EXPORT_ENDPOINTS: Record<typeof exportType, { path: string; nom: string }> = {
+    paiements:     { path: 'export/paiements/',            nom: `paiements_${exportAnnee}` },
+    depenses:      { path: 'export/depenses/',              nom: `depenses_${exportAnnee}` },
+    recapitulatif: { path: 'export/recapitulatif-annuel/',  nom: `recapitulatif_annuel_${exportAnnee}` },
+  };
+
+  const handleExport = async (fmt: 'xlsx' | 'csv') => {
+    setExporting(true);
+    try {
+      const { path, nom } = EXPORT_ENDPOINTS[exportType];
+      await downloadFile(`${path}?annee=${exportAnnee}&export_format=${fmt}`, `${nom}.${fmt}`);
+    } catch (e) {
+      console.error(e);
+      window.alert("Erreur lors de l'export. Réessayez dans quelques instants.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const downloadRecu = (paiementId: number) => {
     const token = localStorage.getItem('access_token');
     const url   = `${axiosInstance.defaults.baseURL}paiements/${paiementId}/recu/`;
@@ -122,6 +148,36 @@ const PaymentManagement: React.FC = () => {
       <IonContent className="pay-content">
         <div className="g-page">
           <IonSearchbar value={search} onIonInput={e => setSearch(e.detail.value!)} placeholder="Rechercher…" className="g-animate" />
+
+          <div className="g-card g-animate" style={{ padding: '16px', marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
+            <div className="g-input-group" style={{ margin: 0, flex: '1 1 160px' }}>
+              <label className="g-label">📊 Export comptable</label>
+              <select
+                className="g-input"
+                value={exportType}
+                onChange={e => setExportType(e.target.value as typeof exportType)}
+              >
+                <option value="paiements">Paiements / loyers perçus</option>
+                <option value="depenses">Dépenses & charges</option>
+                <option value="recapitulatif">Récapitulatif annuel</option>
+              </select>
+            </div>
+            <div className="g-input-group" style={{ margin: 0, flex: '0 1 110px' }}>
+              <label className="g-label">Année</label>
+              <select className="g-input" value={exportAnnee} onChange={e => setExportAnnee(e.target.value)}>
+                {[0, 1, 2, 3].map(offset => {
+                  const a = anneeActuelle - offset;
+                  return <option key={a} value={a}>{a}</option>;
+                })}
+              </select>
+            </div>
+            <button className="g-btn g-btn--outline" disabled={exporting} onClick={() => handleExport('xlsx')}>
+              {exporting ? '⏳' : '⬇️ Excel (.xlsx)'}
+            </button>
+            <button className="g-btn g-btn--outline" disabled={exporting} onClick={() => handleExport('csv')}>
+              {exporting ? '⏳' : '⬇️ CSV'}
+            </button>
+          </div>
 
           {loading ? (
             <div className="g-loading"><div className="g-spinner" /></div>
