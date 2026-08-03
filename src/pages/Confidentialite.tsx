@@ -15,13 +15,8 @@ const Confidentialite: React.FC = () => {
             <span className="legal-topbar__name">Gimmopro</span>
           </div>
 
-          <div className="legal-banner">
-            ⚠ Document provisoire — à faire relire et valider par un professionnel du droit
-            avant toute mise en production avec des utilisateurs et locataires réels.
-          </div>
-
           <h1 className="legal-title">Politique de confidentialité</h1>
-          <p className="legal-updated">Version provisoire</p>
+          <p className="legal-updated">Dernière mise à jour : août 2026</p>
 
           <div className="legal-section">
             <h2>1. Responsable du traitement</h2>
