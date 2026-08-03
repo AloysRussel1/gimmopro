@@ -31,3 +31,8 @@ vite-dev*.log
 
 # Optional eslint cache
 .eslintcache
+
+# Cypress artifacts from local test runs
+/cypress/screenshots
+/cypress/videos
+/cypress/downloads
