@@ -9,6 +9,7 @@ import { Bar } from 'react-chartjs-2';
 import axiosInstance from '../api/axiosConfig';
 import { openWhatsApp } from '../utils/whatsapp';
 import { previewPdf, downloadPdf } from '../utils/pdf';
+import SkeletonLoader from '../components/SkeletonLoader';
 import '../assets/css/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -186,7 +187,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="g-loading"><div className="g-spinner" /></div>
+            <SkeletonLoader variant="stat-cards" count={4} />
           ) : !stats ? (
             <div className="g-empty"><p className="g-empty__text">Impossible de charger</p></div>
           ) : (

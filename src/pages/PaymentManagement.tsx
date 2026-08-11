@@ -8,6 +8,7 @@ import { FiSend } from 'react-icons/fi';
 import axiosInstance from '../api/axiosConfig';
 import SendReceiptModal from '../components/SendReceiptModal';
 import { downloadFile } from '../utils/pdf';
+import SkeletonLoader from '../components/SkeletonLoader';
 import '../assets/css/PaymentManagement.css';
 
 interface Occupant {
@@ -125,9 +126,8 @@ const PaymentManagement: React.FC = () => {
   };
 
   const downloadRecu = (paiementId: number) => {
-    const token = localStorage.getItem('access_token');
-    const url   = `${axiosInstance.defaults.baseURL}paiements/${paiementId}/recu/`;
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    const url = `${axiosInstance.defaults.baseURL}paiements/${paiementId}/recu/`;
+    fetch(url, { credentials: 'include' })
       .then(r => r.blob())
       .then(blob => {
         const link  = document.createElement('a');
@@ -180,7 +180,7 @@ const PaymentManagement: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="g-loading"><div className="g-spinner" /></div>
+            <SkeletonLoader variant="table-rows" count={5} />
           ) : filtered.length === 0 ? (
             <div className="g-empty g-animate"><div className="g-empty__icon">💳</div><p className="g-empty__text">Aucun locataire</p></div>
           ) : (

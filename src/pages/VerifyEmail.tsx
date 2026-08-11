@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import { markAuthenticated } from '../api/auth';
 import '../assets/css/Login.css';
 
 const VerifyEmail: React.FC = () => {
@@ -14,13 +15,10 @@ const VerifyEmail: React.FC = () => {
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     axiosInstance.post('auth/verify-email/confirm/', { token })
-      .then(res => {
-        // Le compte vient d'être activé : le backend renvoie directement des
-        // JWT pour éviter un aller-retour supplémentaire par l'écran de login.
-        if (res.data?.access && res.data?.refresh) {
-          localStorage.setItem('access_token',  res.data.access);
-          localStorage.setItem('refresh_token', res.data.refresh);
-        }
+      .then(() => {
+        // Le compte vient d'être activé : le backend pose directement les
+        // cookies httpOnly pour éviter un aller-retour par l'écran de login.
+        markAuthenticated();
         setStatus('success');
         setTimeout(() => history.replace('/dashboard'), 2000);
       })

@@ -124,9 +124,8 @@ const EtatDesLieuxForm: React.FC = () => {
   };
 
   const downloadPdf = (edlId: number) => {
-    const token = localStorage.getItem('access_token');
-    const url   = `${axiosInstance.defaults.baseURL}etat-des-lieux/${edlId}/pdf/`;
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    const url = `${axiosInstance.defaults.baseURL}etat-des-lieux/${edlId}/pdf/`;
+    fetch(url, { credentials: 'include' })
       .then(res => res.blob())
       .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
       .catch(console.error);

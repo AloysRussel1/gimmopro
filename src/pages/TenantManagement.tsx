@@ -7,6 +7,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
 import { previewPdf, downloadPdf } from '../utils/pdf';
+import SkeletonLoader from '../components/SkeletonLoader';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
@@ -80,9 +81,8 @@ const TenantManagement: React.FC = () => {
   };
 
   const handleContrat = (id: number) => {
-    const token = localStorage.getItem('access_token');
-    const url   = `${axiosInstance.defaults.baseURL}occupants/${id}/contrat/`;
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    const url = `${axiosInstance.defaults.baseURL}occupants/${id}/contrat/`;
+    fetch(url, { credentials: 'include' })
       .then(res => res.blob())
       .then(blob => {
         const link  = document.createElement('a');
@@ -199,7 +199,7 @@ const TenantManagement: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="g-loading"><div className="g-spinner" /></div>
+            <SkeletonLoader variant="cards" count={4} />
           ) : filtered.length === 0 ? (
             <div className="g-empty g-animate">
               <div className="g-empty__icon">👤</div>

@@ -6,6 +6,7 @@ import axios from 'axios';
 // Le fallback ci-dessous évite un écran blanc si la variable est absente
 // (ex: preview build local sans .env) — un `console.error` signale quand même
 // qu'on est retombé dessus, pour ne pas masquer un vrai oubli de config.
+// "127.0.0.1", pas "localhost" : voir la note dans .env.local (cookies SameSite).
 const FALLBACK_API_URL = 'http://127.0.0.1:8000/api/';
 const RAW_API_URL = import.meta.env.VITE_API_URL;
 
@@ -32,16 +33,38 @@ if (!looksLikeAbsoluteUrl(RAW_API_URL)) {
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
+  // Le JWT vit désormais dans un cookie httpOnly posé par le backend (revue
+  // de sécurité -- avant, il était en localStorage, lisible par n'importe
+  // quel script en cas de XSS). withCredentials fait envoyer/recevoir ces
+  // cookies malgré le fait que frontend (Vercel) et backend (Railway) soient
+  // deux domaines différents -- sans ça, le navigateur ignore silencieusement
+  // tout Set-Cookie cross-site.
+  withCredentials: true,
 });
 
-// Injecte le token JWT automatiquement
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+// Le cookie JWT étant httpOnly, il est envoyé automatiquement par le
+// navigateur sur chaque requête -- il n'y a donc plus rien à injecter côté
+// JS. Seul le token CSRF (posé en cookie NON-httpOnly, exprès pour être lu
+// ici) doit être répercuté en en-tête sur les méthodes qui modifient des
+// données : sans ça, le backend rejette ces requêtes (voir
+// CookieJWTAuthentication.enforce_csrf côté Django).
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const method = (config.method || 'get').toUpperCase();
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const csrfToken = getCookie('csrftoken');
+    if (csrfToken) config.headers['X-CSRFToken'] = csrfToken;
+  }
   return config;
 });
 
-// Refresh token automatique si 401
+// Refresh automatique si 401 -- le refresh token est lui aussi dans un
+// cookie httpOnly, jamais manipulé en JS : l'appel n'a besoin d'aucun corps,
+// juste withCredentials (déjà sur l'instance) pour que le cookie parte.
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
@@ -65,15 +88,10 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
-        const refresh = localStorage.getItem('refresh_token');
-        // On utilise `axios` brut (pas axiosInstance) pour éviter de rentrer
-        // dans les intercepteurs, mais avec la MÊME base URL que le reste de l'app.
-        const res = await axios.post(`${API_URL}auth/refresh/`, { refresh });
-        localStorage.setItem('access_token', res.data.access);
-        original.headers.Authorization = `Bearer ${res.data.access}`;
+        await axios.post(`${API_URL}auth/refresh/`, null, { withCredentials: true });
         return axiosInstance(original);
       } catch {
-        localStorage.clear();
+        localStorage.removeItem('is_authenticated');
         window.location.href = '/login';
       }
     }

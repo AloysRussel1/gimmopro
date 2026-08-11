@@ -147,8 +147,22 @@ function AdminResourceTable<T extends { id: number }>({
     } catch (e: any) {
       const data = e?.response?.data;
       if (data && typeof data === 'object') {
+        // Les erreurs DRF sont normalement {champ: [messages]} -- attendu et
+        // utile ici puisque ce tableau édite directement les champs du
+        // modèle. On ne convertit que les formes simples (chaîne/tableau de
+        // chaînes) ; toute valeur imbriquée inattendue (objet, exception
+        // interne sérialisée) retombe sur un message générique plutôt que
+        // "[object Object]" ou un détail interne non prévu pour l'affichage.
         const errs: Record<string, string> = {};
-        Object.entries(data).forEach(([k, v]) => { errs[k] = Array.isArray(v) ? v.join(' ') : String(v); });
+        Object.entries(data).forEach(([k, v]) => {
+          if (Array.isArray(v) && v.every(x => typeof x === 'string')) {
+            errs[k] = v.join(' ');
+          } else if (typeof v === 'string') {
+            errs[k] = v;
+          } else {
+            errs[k] = "Valeur invalide.";
+          }
+        });
         setFormErrors(errs);
       } else {
         setFormErrors({ non_field_errors: "Erreur lors de l'enregistrement." });

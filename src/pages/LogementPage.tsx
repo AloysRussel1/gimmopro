@@ -5,6 +5,7 @@ import {
   IonContent, IonHeader, IonPage,
   IonSearchbar, IonTitle, IonToolbar,
 } from '@ionic/react';
+import SkeletonLoader from '../components/SkeletonLoader';
 import './../assets/css/LogementPage.css';
 
 interface Logement {
@@ -61,10 +62,7 @@ const LogementPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="logement-loading">
-              <div className="logement-spinner" />
-              <p>Chargement…</p>
-            </div>
+            <SkeletonLoader variant="cards" count={3} />
           ) : error ? (
             <div className="g-empty g-animate">
               <div className="g-empty__icon">⚠️</div>

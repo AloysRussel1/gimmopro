@@ -105,9 +105,8 @@ const DocumentsSection: React.FC<Props> = ({ occupantId, logementId }) => {
   };
 
   const handleView = (doc: DocumentItem) => {
-    const token = localStorage.getItem('access_token');
-    const url   = `${axiosInstance.defaults.baseURL}documents/${doc.id}/fichier/`;
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    const url = `${axiosInstance.defaults.baseURL}documents/${doc.id}/fichier/`;
+    fetch(url, { credentials: 'include' })
       .then(res => res.blob())
       .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
       .catch(console.error);

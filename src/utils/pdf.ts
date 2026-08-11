@@ -2,11 +2,11 @@ import axiosInstance from '../api/axiosConfig';
 
 /** Récupère un fichier protégé par JWT en blob -- un simple window.open(url)
  * ou <a href> ne fonctionnerait pas : la requête de la nouvelle page/du
- * téléchargement n'inclurait pas l'en-tête Authorization. */
+ * téléchargement n'enverrait pas le cookie d'auth cross-site sans
+ * `credentials: 'include'` (équivalent fetch de axios `withCredentials`). */
 async function fetchAuthBlob(path: string): Promise<Blob> {
-  const token = localStorage.getItem('access_token');
   const url = `${axiosInstance.defaults.baseURL}${path}`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(url, { credentials: 'include' });
   if (!res.ok) throw new Error(`Échec du chargement du fichier (${res.status})`);
   return res.blob();
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import AsyncBoundary from '../components/AsyncBoundary';
+import SkeletonLoader from '../components/SkeletonLoader';
 import '../assets/css/ProfilePage.css';
 
 interface Profile {
@@ -53,9 +55,7 @@ const ProfilePage: React.FC = () => {
 
       <IonContent className="profile-content">
         <div className="g-page">
-          {loading ? (
-            <div className="g-loading"><div className="g-spinner" /></div>
-          ) : (
+          <AsyncBoundary loading={loading} skeleton={<SkeletonLoader variant="cards" count={2} />}>
             <>
               <div className="profile-card g-card g-animate">
                 <p className="profile-card__nom">{profile?.nom}</p>
@@ -97,7 +97,7 @@ const ProfilePage: React.FC = () => {
                 ← Retour
               </button>
             </>
-          )}
+          </AsyncBoundary>
         </div>
       </IonContent>
     </IonPage>
