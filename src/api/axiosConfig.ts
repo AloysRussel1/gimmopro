@@ -16,17 +16,25 @@ const RAW_API_URL = import.meta.env.VITE_API_URL;
 // broncher, puis serait traité comme une URL RELATIVE par le navigateur — les
 // requêtes partiraient silencieusement vers l'origine du frontend au lieu du
 // backend (404/405 très confus à déboguer). On préfère planter fort ici.
-const looksLikeAbsoluteUrl = (v: unknown): v is string =>
-  typeof v === 'string' && /^https?:\/\/\S+$/.test(v.trim());
+// Une URL RELATIVE de la forme "/api/" est en revanche volontairement
+// acceptée (pas juste http(s)://...) : c'est la valeur attendue en
+// production depuis la mise en place du proxy Vercel (vercel.json) qui fait
+// passer /api/* par le même domaine que le frontend -- nécessaire pour que
+// les cookies d'auth restent "first-party" aux yeux de Safari/ITP, qui
+// bloque les cookies cross-site même avec SameSite=None; Secure=True. Un
+// seul slash de tête (pas "//", qui serait une URL protocol-relative vers
+// un hôte arbitraire) pour éviter d'accepter autre chose qu'un chemin local.
+const looksLikeValidApiUrl = (v: unknown): v is string =>
+  typeof v === 'string' && (/^https?:\/\/\S+$/.test(v.trim()) || /^\/(?!\/)\S*$/.test(v.trim()));
 
-const API_URL = looksLikeAbsoluteUrl(RAW_API_URL) ? RAW_API_URL.trim() : FALLBACK_API_URL;
+const API_URL = looksLikeValidApiUrl(RAW_API_URL) ? RAW_API_URL.trim() : FALLBACK_API_URL;
 
-if (!looksLikeAbsoluteUrl(RAW_API_URL)) {
+if (!looksLikeValidApiUrl(RAW_API_URL)) {
   console.error(
     `VITE_API_URL est absent ou mal formé (valeur reçue : ${JSON.stringify(RAW_API_URL)}). ` +
-    `Attendu une URL absolue, ex: https://mon-backend.up.railway.app/api/ — ` +
-    `repli sur ${FALLBACK_API_URL}. Les appels API vont échouer tant que la variable ` +
-    "n'est pas corrigée dans le dashboard Vercel/Railway (Settings → Environment Variables)."
+    `Attendu une URL absolue (ex: https://mon-backend.up.railway.app/api/) ou un chemin relatif ` +
+    `de la forme "/api/" — repli sur ${FALLBACK_API_URL}. Les appels API vont échouer tant que la ` +
+    "variable n'est pas corrigée dans le dashboard Vercel/Railway (Settings → Environment Variables)."
   );
 }
 
