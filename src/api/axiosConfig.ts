@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken, getRefreshFallback, setTokens, clearTokens } from './tokenStore';
 
 // Une seule source de vérité pour l'URL de l'API, injectée au build par Vite.
 // En local : GIMMOPRO/gimmopro/.env.local avec VITE_API_URL=http://127.0.0.1:8000/api/
@@ -55,24 +56,32 @@ const getCookie = (name: string): string | null => {
   return match ? decodeURIComponent(match[1]) : null;
 };
 
-// Le cookie JWT étant httpOnly, il est envoyé automatiquement par le
-// navigateur sur chaque requête -- il n'y a donc plus rien à injecter côté
-// JS. Seul le token CSRF (posé en cookie NON-httpOnly, exprès pour être lu
-// ici) doit être répercuté en en-tête sur les méthodes qui modifient des
-// données : sans ça, le backend rejette ces requêtes (voir
-// CookieJWTAuthentication.enforce_csrf côté Django).
+// Le cookie JWT httpOnly reste le mécanisme principal, envoyé automatiquement
+// par le navigateur -- rien à faire côté JS pour lui. Deux ajouts en secours :
+// - le token CSRF (cookie NON-httpOnly, exprès pour être lu ici) répercuté en
+//   en-tête sur les méthodes qui modifient des données, sans quoi le backend
+//   rejette ces requêtes (voir CookieJWTAuthentication.enforce_csrf) ;
+// - l'access token EN MÉMOIRE (tokenStore.ts), envoyé en header Authorization
+//   quand on en a un -- c'est ce qui permet à Safari/ITP de continuer à
+//   fonctionner malgré le blocage du cookie cross-site : le backend accepte
+//   header OU cookie (header prioritaire), donc envoyer les deux ne coûte
+//   rien sur les navigateurs où le cookie marche déjà.
 axiosInstance.interceptors.request.use((config) => {
   const method = (config.method || 'get').toUpperCase();
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     const csrfToken = getCookie('csrftoken');
     if (csrfToken) config.headers['X-CSRFToken'] = csrfToken;
   }
+  const accessToken = getAccessToken();
+  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
 
-// Refresh automatique si 401 -- le refresh token est lui aussi dans un
-// cookie httpOnly, jamais manipulé en JS : l'appel n'a besoin d'aucun corps,
-// juste withCredentials (déjà sur l'instance) pour que le cookie parte.
+// Refresh automatique si 401. Le cookie httpOnly suit la requête tout seul
+// sur les navigateurs qui l'acceptent ; le refresh conservé en sessionStorage
+// (tokenStore.ts) est envoyé dans le corps en secours pour Safari/ITP, qui
+// bloque le cookie cross-site même bien configuré (SameSite=None; Secure=True).
+// Le backend accepte l'un ou l'autre (voir CookieTokenRefreshView).
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
@@ -96,9 +105,15 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
-        await axios.post(`${API_URL}auth/refresh/`, null, { withCredentials: true });
+        const res = await axios.post(
+          `${API_URL}auth/refresh/`,
+          { refresh: getRefreshFallback() },
+          { withCredentials: true },
+        );
+        setTokens(res.data?.access, res.data?.refresh);
         return axiosInstance(original);
       } catch {
+        clearTokens();
         localStorage.removeItem('is_authenticated');
         window.location.href = '/login';
       }

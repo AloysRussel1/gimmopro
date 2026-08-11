@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
-import { markAuthenticated } from '../api/auth';
+import { markAuthenticated, setTokens } from '../api/auth';
 import '../assets/css/Login.css';
 
 const Login: React.FC = () => {
@@ -20,10 +20,12 @@ const Login: React.FC = () => {
       // Le backend attend la clé "username" (sérialiseur JWT par défaut de
       // SimpleJWT) — mais EmailOrUsernameBackend accepte un email dans ce
       // champ, donc l'utilisateur ne voit et ne saisit plus que son email.
-      // Le backend pose les tokens en cookies httpOnly (jamais dans la
-      // réponse JSON) -- rien à stocker ici à part le simple indicateur
-      // d'affichage utilisé par le routing (voir api/auth.ts).
-      await axiosInstance.post('auth/login/', { username: email, password });
+      // Le backend pose les tokens en cookies httpOnly (mécanisme principal)
+      // ET les renvoie en JSON (filet de secours Safari/ITP, gardé en
+      // mémoire/sessionStorage par setTokens -- jamais en localStorage,
+      // voir api/tokenStore.ts).
+      const res = await axiosInstance.post('auth/login/', { username: email, password });
+      setTokens(res.data.access, res.data.refresh);
       markAuthenticated();
       history.replace('/dashboard');
     } catch (err: any) {

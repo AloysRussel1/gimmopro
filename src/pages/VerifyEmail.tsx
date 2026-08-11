@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
-import { markAuthenticated } from '../api/auth';
+import { markAuthenticated, setTokens } from '../api/auth';
 import '../assets/css/Login.css';
 
 const VerifyEmail: React.FC = () => {
@@ -15,9 +15,11 @@ const VerifyEmail: React.FC = () => {
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     axiosInstance.post('auth/verify-email/confirm/', { token })
-      .then(() => {
+      .then(res => {
         // Le compte vient d'être activé : le backend pose directement les
-        // cookies httpOnly pour éviter un aller-retour par l'écran de login.
+        // cookies httpOnly (+ filet de secours JSON, voir Login.tsx) pour
+        // éviter un aller-retour par l'écran de login.
+        setTokens(res.data.access, res.data.refresh);
         markAuthenticated();
         setStatus('success');
         setTimeout(() => history.replace('/dashboard'), 2000);
