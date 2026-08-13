@@ -59,54 +59,8 @@
 }
 .logement-page__add:active { background: var(--g-accent-hover); }
 
-/* ── Puces de filtre rapide ───────────────────────────── */
-
-.log-filters {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 18px;
-  scrollbar-width: none;
-}
-.log-filters::-webkit-scrollbar { display: none; }
-
-.log-filter-chip {
-  display: flex; align-items: center; gap: 6px;
-  flex-shrink: 0;
-  background: var(--g-surface);
-  border: 1px solid var(--g-border);
-  border-radius: 100px;
-  padding: 7px 14px;
-  font-family: var(--font-body);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--g-text-2);
-  cursor: pointer;
-  transition: background-color .15s, border-color .15s, color .15s;
-}
-.log-filter-chip:active { transform: scale(0.97); }
-.log-filter-chip.active {
-  background: var(--g-accent-soft);
-  border-color: transparent;
-  color: var(--g-accent);
-}
-.log-filter-chip--danger.active {
-  background: var(--g-warning-dim);
-  color: var(--g-warning);
-}
-.log-filter-chip__count {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 18px; height: 18px; padding: 0 5px;
-  border-radius: 100px;
-  background: var(--g-surface-2);
-  color: var(--g-text-3);
-  font-size: 10.5px; font-weight: 700;
-}
-.log-filter-chip.active .log-filter-chip__count {
-  background: rgba(255,255,255,0.6);
-  color: inherit;
-}
+/* ── Puces de filtre rapide : .g-chip-row/.g-filter-chip (theme.css) ──
+   Partagées avec PaymentManagement -- une seule définition. */
 
 /* ── Grille / liste de cartes ─────────────────────────── */
 

@@ -7,7 +7,23 @@
   background: var(--g-surface); border: 1px solid var(--g-border);
   border-radius: var(--g-radius); padding: 18px;
   display: flex; flex-direction: column; gap: 12px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
+.pay-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--g-shadow-md);
+  border-color: var(--g-border-bright);
+}
+
+.pay-solde {
+  background: var(--g-warning-dim);
+  border: 1px solid rgba(217,119,6,0.25);
+  border-radius: var(--g-radius-sm);
+  padding: 8px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.pay-solde__label { font-size: 11px; font-weight: 600; color: var(--g-warning); text-transform: uppercase; letter-spacing: 0.04em; }
+.pay-solde__val   { font-size: 13.5px; font-weight: 700; color: var(--g-warning) !important; }
 .pay-card__head { display: flex; align-items: center; gap: 12px; }
 .pay-avatar {
   width: 42px; height: 42px; background: var(--g-surface-2);

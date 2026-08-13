@@ -208,15 +208,15 @@ const LogementPage: React.FC = () => {
           </div>
 
           {!loading && !error && logements.length > 0 && (
-            <div className="log-filters g-animate g-animate--2">
+            <div className="g-chip-row g-animate g-animate--2">
               {(['tous', 'occupes', 'vacants', 'retard'] as Filtre[]).map(f => (
                 <button
                   key={f}
-                  className={`log-filter-chip ${filtre === f ? 'active' : ''} ${f === 'retard' ? 'log-filter-chip--danger' : ''}`}
+                  className={`g-filter-chip ${filtre === f ? 'active' : ''} ${f === 'retard' ? 'g-filter-chip--danger' : ''}`}
                   onClick={() => setFiltre(f)}
                 >
                   {f === 'tous' ? 'Tous' : f === 'occupes' ? 'Occupés' : f === 'vacants' ? 'Vacants' : 'En retard'}
-                  <span className="log-filter-chip__count">{compteurs[f]}</span>
+                  <span className="g-filter-chip__count">{compteurs[f]}</span>
                 </button>
               ))}
             </div>
