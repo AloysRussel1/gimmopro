@@ -258,11 +258,6 @@ const PaymentManagement: React.FC = () => {
               <button className="pay-modal__close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             {selected && <p className="pay-modal__tenant">{selected.nom_complet}{selected.compartiment_nom ? ` · ${selected.compartiment_nom}` : ''}</p>}
-            {selected && parseFloat(selected.reste_a_payer) > 0 && (
-              <p className="pay-modal__tenant" style={{ color: 'var(--g-danger)', fontWeight: 600 }}>
-                Reste à payer sur la période en cours : {parseFloat(selected.reste_a_payer).toLocaleString('fr-FR')} FCFA
-              </p>
-            )}
 
             <div className="g-input-group">
               <label className="g-label">Nombre de mois</label>
@@ -278,6 +273,31 @@ const PaymentManagement: React.FC = () => {
               <label className="g-label">Montant total (FCFA)</label>
               <input className="g-input" type="number" value={form.montant} onChange={e => setForm(f => ({ ...f, montant: e.target.value }))} />
             </div>
+
+            {/* Aperçu en direct -- recalculé à chaque frappe, sans attendre la
+                soumission : ce que verra le reçu (statut, reste à payer,
+                trop-perçu éventuel) une fois ce paiement enregistré. */}
+            {selected && (() => {
+              const resteAvant = parseFloat(selected.reste_a_payer) > 0
+                ? parseFloat(selected.reste_a_payer)
+                : parseFloat(selected.loyer) * (parseInt(form.nombre_mois) || 1);
+              const montantSaisi = parseFloat(form.montant) || 0;
+              const resteApres  = Math.max(0, resteAvant - montantSaisi);
+              const tropPercu   = Math.max(0, montantSaisi - resteAvant);
+              const statutPrevu = montantSaisi <= 0 ? 'En attente' : montantSaisi >= resteAvant ? 'Payé' : 'Partiel';
+              return (
+                <div className="pay-preview">
+                  <span className={`g-badge ${statutPrevu === 'Payé' ? 'g-badge--green' : statutPrevu === 'Partiel' ? 'g-badge--gold' : 'g-badge--red'}`}>
+                    {statutPrevu}
+                  </span>
+                  <span className="pay-preview__text">
+                    Reste après ce paiement : <strong>{resteApres.toLocaleString('fr-FR')} FCFA</strong>
+                    {tropPercu > 0 && <> · Trop-perçu : {tropPercu.toLocaleString('fr-FR')} FCFA</>}
+                  </span>
+                </div>
+              );
+            })()}
+
             <div className="g-input-group">
               <label className="g-label">Mode de paiement</label>
               <div className="pay-mois-row">
@@ -294,17 +314,31 @@ const PaymentManagement: React.FC = () => {
             </div>
             <div className="g-input-group">
               <label className="g-label">Début de la période couverte</label>
-              <input className="g-input" type="date" value={form.date_debut} onChange={e => setForm(f => ({ ...f, date_debut: e.target.value }))} />
+              <div className="pay-date-row">
+                <input className="g-input" type="date" value={form.date_debut} onChange={e => setForm(f => ({ ...f, date_debut: e.target.value }))} />
+                {form.date_debut && (
+                  <button type="button" className="pay-date-clear" title="Effacer la date" onClick={() => setForm(f => ({ ...f, date_debut: '' }))}>✕</button>
+                )}
+              </div>
             </div>
             <div className="g-input-group">
               <label className="g-label">Date du paiement</label>
-              <input className="g-input" type="date" value={form.date_paiement} onChange={e => setForm(f => ({ ...f, date_paiement: e.target.value }))} />
+              <div className="pay-date-row">
+                <input className="g-input" type="date" value={form.date_paiement} onChange={e => setForm(f => ({ ...f, date_paiement: e.target.value }))} />
+                {form.date_paiement && (
+                  <button type="button" className="pay-date-clear" title="Effacer la date" onClick={() => setForm(f => ({ ...f, date_paiement: '' }))}>✕</button>
+                )}
+              </div>
             </div>
             <div className="g-input-group">
               <label className="g-label">Note (optionnel)</label>
               <input className="g-input" placeholder="Ex: espèces, virement…" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
             </div>
-            <button className="g-btn g-btn--primary" onClick={handleSave} disabled={saving}>
+            <button
+              className="g-btn g-btn--primary"
+              onClick={handleSave}
+              disabled={saving || !form.montant || !form.date_debut || !form.date_paiement}
+            >
               {saving ? '⏳ Enregistrement…' : '✓ Confirmer'}
             </button>
           </div>

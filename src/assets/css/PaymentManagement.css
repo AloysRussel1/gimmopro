@@ -59,6 +59,24 @@
 }
 .pay-modal__tenant { font-size: 14px; color: var(--g-gold); margin-bottom: 24px; font-weight: 500; }
 
+.pay-preview {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm); padding: 10px 14px; margin: 4px 0 16px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.pay-preview__text { font-size: 12.5px; color: var(--g-text-2); }
+.pay-preview__text strong { color: var(--g-text) !important; }
+
+.pay-date-row { display: flex; align-items: center; gap: 8px; }
+.pay-date-row .g-input { flex: 1; }
+.pay-date-clear {
+  background: var(--g-surface-2); border: 1px solid var(--g-border);
+  color: var(--g-text-2) !important; width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: var(--g-radius-sm); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.pay-date-clear:hover { background: var(--g-danger-dim); color: var(--g-danger) !important; border-color: rgba(220,38,38,0.3); }
+
 .pay-mois-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .pay-mois-btn {
   padding: 8px 14px; border-radius: var(--g-radius-sm);
