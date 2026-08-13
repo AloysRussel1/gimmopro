@@ -96,17 +96,17 @@ describe('Parcours utilisateur complet', { testIsolation: false }, () => {
     });
   });
 
-  it("ouvre le menu d'actions secondaires (bottom sheet) et vérifie les actions caution", () => {
+  it("ouvre le menu d'actions secondaires (bottom sheet) réduit à l'essentiel (ÉTAPE 2)", () => {
     cy.contains('.tenant-card', nomLocataire).find('.tenant-kebab').click();
     cy.get('.action-sheet-group', { timeout: 5000 }).should('be.visible');
     cy.contains('.action-sheet-button', 'Modifier').should('be.visible');
-    cy.contains('.action-sheet-button', 'Voir le contrat').should('be.visible');
-    cy.contains('.action-sheet-button', 'Documents').should('be.visible');
-    // Caution renseignée à la création -> ces actions doivent être actives (pas grisées).
-    cy.contains('.action-sheet-button', 'Aperçu reçu caution').should('not.be.disabled');
-    cy.contains('.action-sheet-button', 'Télécharger reçu caution').should('not.be.disabled');
-    cy.contains('.action-sheet-button', 'Envoyer reçu caution').should('not.be.disabled');
+    cy.contains('.action-sheet-button', 'Documents & Reçus').should('be.visible');
+    cy.contains('.action-sheet-button', 'Marquer le départ').should('be.visible');
     cy.contains('.action-sheet-button', 'Supprimer').should('be.visible');
+    // Les anciens items séparés ont été regroupés dans "Documents & Reçus" --
+    // ils ne doivent plus apparaître directement dans le menu.
+    cy.contains('.action-sheet-button', 'Voir le contrat').should('not.exist');
+    cy.contains('.action-sheet-button', 'Envoyer reçu caution').should('not.exist');
     cy.contains('.action-sheet-button', 'Annuler').click();
     // Attend la fin de l'animation de fermeture avant le test suivant --
     // sinon un nouveau clic sur ⋮ peut arriver pendant la transition et être
@@ -114,31 +114,46 @@ describe('Parcours utilisateur complet', { testIsolation: false }, () => {
     cy.get('.action-sheet-group').should('not.be.visible');
   });
 
-  it('génère le bail (PDF), prévisualise et télécharge le reçu de caution', () => {
+  it('prévisualise le contrat de bail depuis le hub Documents & Reçus', () => {
     cy.intercept('GET', '**/occupants/*/contrat/').as('bailPdf');
-    cy.contains('.tenant-card', nomLocataire).find('.tenant-kebab').click();
-    cy.contains('.action-sheet-button', 'Voir le contrat', { timeout: 10000 }).click();
-    cy.wait('@bailPdf').its('response.statusCode').should('eq', 200);
-    cy.get('.action-sheet-group').should('not.be.visible');
+    cy.intercept('GET', '**/paiements/?occupant_id=*').as('listPaiements');
+    cy.visit('/locataire');
+    cy.contains('.tenant-card', nomLocataire, { timeout: 10000 }).find('.tenant-kebab').click();
+    cy.contains('.action-sheet-button', 'Documents & Reçus', { timeout: 10000 }).click();
+    cy.wait('@listPaiements');
+    cy.contains('.docs-hub-section__title', 'Contrat de bail').should('be.visible');
+    cy.contains('.docs-hub-section__title', 'Reçu de caution').should('be.visible');
+    cy.contains('.docs-hub-section__title', 'Reçus de loyer').should('be.visible');
 
-    cy.intercept('GET', '**/occupants/*/caution/recu/').as('recuCaution');
-    cy.contains('.tenant-card', nomLocataire).find('.tenant-kebab').click();
-    cy.window().then(win => cy.stub(win, 'open').as('windowOpen'));
-    cy.contains('.action-sheet-button', 'Aperçu reçu caution', { timeout: 10000 }).click();
-    cy.wait('@recuCaution').its('response.statusCode').should('eq', 200);
-    cy.get('@windowOpen').should('have.been.called'); // ouvert dans un nouvel onglet
-    cy.get('.action-sheet-group').should('not.be.visible');
+    // Aperçu intégré à la page (iframe), plus dans un nouvel onglet --
+    // c'est ce qui permet d'accoler le bouton d'envoi AU document lui-même.
+    cy.contains('.docs-hub-section', 'Contrat de bail').contains('button', 'Aperçu').click();
+    cy.wait('@bailPdf').its('response.statusCode').should('eq', 200);
+    cy.get('.pdf-preview-modal__frame').should('be.visible');
+    // Pas d'envoi serveur réel pour le contrat (contrairement à la caution) --
+    // aucun bouton "Envoyer par e-mail" trompeur ne doit apparaître ici.
+    cy.contains('button', 'Envoyer par e-mail').should('not.exist');
   });
 
-  it('envoie le reçu de caution par email', () => {
+  it('prévisualise et envoie le reçu de caution par e-mail depuis son aperçu', () => {
+    cy.intercept('GET', '**/occupants/*/caution/recu/').as('recuCaution');
     cy.intercept('POST', '**/occupants/*/caution/envoyer/').as('envoyerCaution');
-    cy.contains('.tenant-card', nomLocataire).find('.tenant-kebab').click();
-    cy.contains('.action-sheet-button', 'Envoyer reçu caution', { timeout: 10000 }).click();
+    cy.visit('/locataire');
+    cy.contains('.tenant-card', nomLocataire, { timeout: 10000 }).find('.tenant-kebab').click();
+    cy.contains('.action-sheet-button', 'Documents & Reçus', { timeout: 10000 }).click();
+    // Caution renseignée à la création -> le bouton Aperçu doit être actif.
+    cy.contains('.docs-hub-section', 'Reçu de caution').contains('button', 'Aperçu').should('not.be.disabled').click();
+    cy.wait('@recuCaution').its('response.statusCode').should('eq', 200);
+    cy.get('.pdf-preview-modal__frame').should('be.visible');
+    cy.contains('button', 'Envoyer par e-mail', { timeout: 10000 }).click();
     cy.wait('@envoyerCaution').its('response.statusCode').should('eq', 200);
   });
 
   it('enregistre un paiement de loyer depuis le bouton principal de la carte', () => {
-    cy.contains('.tenant-card', nomLocataire).contains('button', '💳 Paiement').click();
+    // Revisite la liste -- le test précédent laisse le hub Documents & Reçus
+    // et son aperçu ouverts, ce qui bloquerait sinon le clic sur la carte.
+    cy.visit('/locataire');
+    cy.contains('.tenant-card', nomLocataire, { timeout: 10000 }).contains('button', '💳 Paiement').click();
     cy.location('pathname', { timeout: 10000 }).should('eq', '/paiement');
 
     // La modale s'ouvre pré-remplie pour ce locataire précis (openOccupantId).

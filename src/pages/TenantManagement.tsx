@@ -6,9 +6,10 @@ import {
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
-import { previewPdf, downloadPdf, downloadFile } from '../utils/pdf';
 import SkeletonLoader from '../components/SkeletonLoader';
 import PhoneInput from '../components/common/PhoneInput';
+import PdfPreviewModal from '../components/common/PdfPreviewModal';
+import SendReceiptModal from '../components/SendReceiptModal';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
@@ -18,6 +19,12 @@ interface Occupant {
   date_prochain_paiement: string; statut: string; actif: boolean; reste_a_payer: string;
   compartiment: number | null; compartiment_nom: string;
   logement: number | null; logement_nom: string; logement_loc: string;
+}
+
+interface PaiementResume {
+  id: number; montant_verse: string; nombre_mois: number;
+  date_paiement: string; date_debut_periode: string; date_fin_periode: string;
+  statut: string; recu_token: string;
 }
 
 const TenantManagement: React.FC = () => {
@@ -34,12 +41,22 @@ const TenantManagement: React.FC = () => {
   const [saving,     setSaving]     = useState(false);
   const [editError,  setEditError]  = useState('');
 
-  // Modal documents
-  const [showDocs,   setShowDocs]   = useState(false);
-  const [docsOccupant, setDocsOccupant] = useState<Occupant | null>(null);
+  // Modal "Documents & Reçus" -- hub unique regroupant contrat, caution,
+  // reçus de loyer et pièces jointes (ÉTAPE 2 : remplace les items séparés
+  // qui surchargeaient le menu ⋮).
+  const [docsFor,      setDocsFor]      = useState<Occupant | null>(null);
+  const [loyerPaiements, setLoyerPaiements] = useState<PaiementResume[]>([]);
+  const [loyerLoading, setLoyerLoading] = useState(false);
 
-  // Envoi du reçu de caution
-  const [sendingCautionId, setSendingCautionId] = useState<number | null>(null);
+  // Aperçus PDF (contrat / caution) -- ouverts DEPUIS le hub "Documents &
+  // Reçus", jamais directement depuis le menu ⋮ : le bouton "Envoyer par
+  // e-mail" (quand disponible) vit maintenant à l'intérieur de l'aperçu,
+  // plus dans le menu principal.
+  const [contratPreviewOpen, setContratPreviewOpen] = useState(false);
+  const [cautionPreviewOpen, setCautionPreviewOpen] = useState(false);
+  // Reçu de loyer sélectionné dans la liste -- réutilise SendReceiptModal
+  // (aperçu + WhatsApp/SMS/e-mail), déjà construit pour ce cas précis.
+  const [loyerSendTarget, setLoyerSendTarget] = useState<PaiementResume | null>(null);
 
   // Menu d'actions secondaires (bottom sheet) -- déclenché par le bouton ⋮
   // sur chaque carte, pour ne garder que l'action principale visible en
@@ -81,8 +98,13 @@ const TenantManagement: React.FC = () => {
     setOccupants(prev => prev.filter(o => o.id !== id));
   };
 
-  const handleContrat = (id: number) => {
-    downloadFile(`occupants/${id}/contrat/`, `contrat_${id}.pdf`).catch(console.error);
+  const openDocs = (o: Occupant) => {
+    setDocsFor(o);
+    setLoyerLoading(true);
+    axiosInstance.get(`paiements/?occupant_id=${o.id}`)
+      .then(r => setLoyerPaiements(r.data))
+      .catch(console.error)
+      .finally(() => setLoyerLoading(false));
   };
 
   const openEdit = (o: Occupant) => {
@@ -99,34 +121,6 @@ const TenantManagement: React.FC = () => {
     });
     setEditError('');
     setShowEdit(true);
-  };
-
-  const handleEnvoyerRecuCaution = async (o: Occupant) => {
-    setSendingCautionId(o.id);
-    try {
-      const res = await axiosInstance.post(`occupants/${o.id}/caution/envoyer/`);
-      window.alert(res.data.message || 'Reçu envoyé.');
-    } catch (e: any) {
-      window.alert(e.response?.data?.error || "Erreur lors de l'envoi du reçu.");
-    } finally {
-      setSendingCautionId(null);
-    }
-  };
-
-  const handlePreviewRecuCaution = async (o: Occupant) => {
-    try {
-      await previewPdf(`occupants/${o.id}/caution/recu/`);
-    } catch {
-      window.alert("Impossible d'afficher le reçu. Renseignez le montant et la date de versement de la caution.");
-    }
-  };
-
-  const handleDownloadRecuCaution = async (o: Occupant) => {
-    try {
-      await downloadPdf(`occupants/${o.id}/caution/recu/`, `recu_caution_${o.id}.pdf`);
-    } catch {
-      window.alert("Impossible de télécharger le reçu. Renseignez le montant et la date de versement de la caution.");
-    }
   };
 
   // Ouvre directement la modale de modification quand on arrive depuis le
@@ -334,37 +328,126 @@ const TenantManagement: React.FC = () => {
           </div>
         </IonModal>
 
-        {/* Modal Documents */}
-        <IonModal isOpen={showDocs} onDidDismiss={() => setShowDocs(false)}>
+        {/* Modal "Documents & Reçus" -- hub unique (ÉTAPE 2) : contrat,
+            caution, reçus de loyer et pièces jointes, plutôt que des items
+            séparés qui surchargeaient le menu ⋮. */}
+        <IonModal isOpen={!!docsFor} onDidDismiss={() => setDocsFor(null)}>
           <div className="dep-modal">
             <div className="pay-modal__head" style={{ marginBottom: '20px' }}>
               <div>
-                <h2 className="pay-modal__title">Documents & Pièces jointes</h2>
-                <p className="hist-modal__comp">{docsOccupant?.nom_complet}</p>
+                <h2 className="pay-modal__title">Documents & Reçus</h2>
+                <p className="hist-modal__comp">{docsFor?.nom_complet}</p>
               </div>
-              <button className="pay-modal__close" onClick={() => setShowDocs(false)}>✕</button>
+              <button className="pay-modal__close" onClick={() => setDocsFor(null)}>✕</button>
             </div>
-            {docsOccupant && <DocumentsSection occupantId={docsOccupant.id} />}
+
+            {docsFor && (() => {
+              const o = docsFor;
+              const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
+              return (
+                <>
+                  <div className="docs-hub-section">
+                    <p className="docs-hub-section__title">📄 Contrat de bail</p>
+                    <button className="g-btn g-btn--outline" onClick={() => setContratPreviewOpen(true)}>
+                      👁 Aperçu
+                    </button>
+                  </div>
+
+                  <div className="docs-hub-section">
+                    <p className="docs-hub-section__title">🔐 Reçu de caution</p>
+                    {!cautionPrete && (
+                      <p className="pdf-preview-modal__hint">
+                        Renseignez d'abord le montant et la date de versement de la caution (bouton "Modifier").
+                      </p>
+                    )}
+                    <button className="g-btn g-btn--outline" onClick={() => setCautionPreviewOpen(true)} disabled={!cautionPrete}>
+                      👁 Aperçu
+                    </button>
+                  </div>
+
+                  <div className="docs-hub-section">
+                    <p className="docs-hub-section__title">🧾 Reçus de loyer</p>
+                    {loyerLoading ? (
+                      <p className="pdf-preview-modal__hint">Chargement…</p>
+                    ) : loyerPaiements.length === 0 ? (
+                      <p className="pdf-preview-modal__hint">Aucun paiement enregistré pour l'instant.</p>
+                    ) : (
+                      <div className="docs-hub-list">
+                        {loyerPaiements.map(p => (
+                          <button key={p.id} className="docs-hub-list__item" onClick={() => setLoyerSendTarget(p)}>
+                            <span>{new Date(p.date_debut_periode).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+                            <span>{parseFloat(p.montant_verse).toLocaleString('fr-FR')} FCFA</span>
+                            <span className={`g-badge ${p.statut === 'Payé' ? 'g-badge--green' : p.statut === 'Partiel' ? 'g-badge--gold' : 'g-badge--red'}`}>
+                              {p.statut}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="g-divider" />
+
+                  <div className="docs-hub-section">
+                    <p className="docs-hub-section__title">📎 Pièces jointes</p>
+                    <DocumentsSection occupantId={o.id} />
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </IonModal>
 
-        {/* Actions secondaires -- tiroir natif remontant du bas sur mobile,
-            regroupe tout ce qui n'est pas l'action principale de la carte. */}
+        {/* Aperçus PDF -- ouverts depuis le hub ci-dessus. Le bouton "Envoyer
+            par e-mail" du reçu de caution vit ICI (dans l'aperçu), plus dans
+            le menu ⋮ principal -- pas de bouton équivalent pour le contrat,
+            faute d'un envoi serveur réel pour ce document (contrairement à
+            la caution, qui envoie une vraie pièce jointe par e-mail). */}
+        <PdfPreviewModal
+          isOpen={contratPreviewOpen}
+          onClose={() => setContratPreviewOpen(false)}
+          title="Contrat de bail"
+          fetchPath={docsFor ? `occupants/${docsFor.id}/contrat/` : null}
+          downloadFilename={`contrat_${docsFor?.id}.pdf`}
+        />
+        <PdfPreviewModal
+          isOpen={cautionPreviewOpen}
+          onClose={() => setCautionPreviewOpen(false)}
+          title="Reçu de caution"
+          fetchPath={
+            docsFor && parseFloat(docsFor.caution_versee) > 0 && docsFor.date_versement_caution
+              ? `occupants/${docsFor.id}/caution/recu/` : null
+          }
+          downloadFilename={`recu_caution_${docsFor?.id}.pdf`}
+          notReadyMessage="Renseignez d'abord le montant et la date de versement de la caution."
+          onSendEmail={docsFor ? async () => {
+            const res = await axiosInstance.post(`occupants/${docsFor.id}/caution/envoyer/`);
+            return res.data;
+          } : undefined}
+        />
+        {loyerSendTarget && docsFor && (
+          <SendReceiptModal
+            isOpen={!!loyerSendTarget}
+            onClose={() => setLoyerSendTarget(null)}
+            occupant={docsFor}
+            paiement={loyerSendTarget}
+          />
+        )}
+
+        {/* Actions secondaires -- tiroir natif remontant du bas sur mobile.
+            Réduit à l'essentiel (ÉTAPE 2) : la gestion documentaire est
+            regroupée dans un seul item ("Documents & Reçus" ci-dessus), et
+            les deux actions à conséquence (départ/suppression) restent
+            isolées en fin de liste avec confirmation explicite. */}
         <IonActionSheet
           isOpen={!!actionsFor}
           onDidDismiss={() => setActionsFor(null)}
           header={actionsFor?.nom_complet}
           buttons={actionsFor ? (() => {
             const o = actionsFor;
-            const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
-            const cautionLabel = (label: string) => cautionPrete ? label : `${label} (renseignez d'abord la caution)`;
             return [
               { text: '✏️ Modifier',              handler: () => openEdit(o) },
-              { text: '📄 Voir le contrat',        handler: () => handleContrat(o.id) },
-              { text: '📎 Documents',              handler: () => { setDocsOccupant(o); setShowDocs(true); } },
-              { text: cautionLabel('👁 Aperçu reçu caution'),     disabled: !cautionPrete, handler: () => handlePreviewRecuCaution(o) },
-              { text: cautionLabel('⬇️ Télécharger reçu caution'), disabled: !cautionPrete, handler: () => handleDownloadRecuCaution(o) },
-              { text: cautionLabel(sendingCautionId === o.id ? '⏳ Envoi du reçu…' : '✉️ Envoyer reçu caution'), disabled: !cautionPrete || sendingCautionId === o.id, handler: () => handleEnvoyerRecuCaution(o) },
+              { text: '📎 Documents & Reçus',      handler: () => openDocs(o) },
               { text: '🚪 Marquer le départ',       handler: () => handleLiberer(o.id, o.nom_complet) },
               { text: '🗑 Supprimer',               role: 'destructive' as const, handler: () => handleDelete(o.id, o.nom_complet) },
               { text: 'Annuler',                   role: 'cancel' as const },

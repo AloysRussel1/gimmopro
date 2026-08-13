@@ -25,9 +25,17 @@ async function fetchAuthBlob(path: string): Promise<Blob> {
  * tant que l'onglet ouvert en a besoin, et le navigateur la libère à sa
  * fermeture. */
 export async function previewPdf(path: string): Promise<void> {
-  const blob = await fetchAuthBlob(path);
-  const blobUrl = URL.createObjectURL(blob);
+  const blobUrl = await getBlobUrl(path);
   window.open(blobUrl, '_blank');
+}
+
+/** Récupère un fichier protégé et renvoie une URL blob:// utilisable dans un
+ * <iframe src=...> pour un aperçu intégré à la page (plutôt que dans un
+ * nouvel onglet -- voir PdfPreviewModal.tsx) -- même fetch authentifié que
+ * previewPdf/downloadFile, juste sans l'action window.open/téléchargement. */
+export async function getBlobUrl(path: string): Promise<string> {
+  const blob = await fetchAuthBlob(path);
+  return URL.createObjectURL(blob);
 }
 
 /** Télécharge directement le PDF sous le nom de fichier donné. */

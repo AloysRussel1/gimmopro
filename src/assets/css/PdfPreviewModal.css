@@ -1,0 +1,17 @@
+@import './theme.css';
+
+.pdf-preview-modal {
+  background: var(--g-surface); min-height: 100%;
+  padding: 24px; display: flex; flex-direction: column; overflow-y: auto;
+}
+
+.pdf-preview-modal__frame {
+  width: 100%; flex: 1; min-height: 60vh;
+  border: 1px solid var(--g-border); border-radius: var(--g-radius-sm);
+  background: #fff;
+}
+
+.pdf-preview-modal__actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.pdf-preview-modal__actions .g-btn { text-decoration: none; text-align: center; }
+
+.pdf-preview-modal__hint { font-size: 12.5px; color: var(--g-text-3); margin-top: 10px; }
