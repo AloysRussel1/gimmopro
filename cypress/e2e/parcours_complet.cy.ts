@@ -64,7 +64,7 @@ describe('Parcours utilisateur complet', { testIsolation: false }, () => {
     cy.get('input[placeholder="Jean Dupont"]').type(nomLocataire); // étape 1
     cy.contains('button', 'Suivant').click();
 
-    cy.get('input[placeholder="690 123 456"]').type('699888777'); // étape 2
+    cy.get('[data-testid="phone-input"]').type('699888777'); // étape 2
     cy.get('input[placeholder="1234567890123"]').type('CNI-E2E-001');
     cy.contains('button', 'Suivant').click();
 

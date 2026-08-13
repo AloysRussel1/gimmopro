@@ -1,0 +1,40 @@
+/* Aligne react-phone-number-input sur le look de .g-input (theme.css) --
+   la lib impose sa propre structure DOM (drapeau + select + input), donc on
+   habille le conteneur .PhoneInput comme un .g-input et on rend l'input
+   interne transparent plutôt que de dupliquer les styles à la main. */
+
+.g-phone-input.PhoneInput {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  min-height: 44px;
+  padding: 0 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.g-phone-input.PhoneInput--focus {
+  border-color: var(--g-accent);
+  box-shadow: var(--g-focus-ring);
+}
+
+.g-phone-input .PhoneInputInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--g-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  min-height: 44px;
+}
+
+.g-phone-input .PhoneInputInput::placeholder {
+  color: var(--g-text-3);
+}
+
+.g-phone-input .PhoneInputCountrySelect {
+  color: var(--g-text);
+}
+
+.g-phone-input .PhoneInputCountryIcon {
+  box-shadow: 0 0 0 1px var(--g-border);
+}

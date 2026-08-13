@@ -8,6 +8,7 @@ import axiosInstance from '../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
 import { previewPdf, downloadPdf } from '../utils/pdf';
 import SkeletonLoader from '../components/SkeletonLoader';
+import PhoneInput from '../components/common/PhoneInput';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
@@ -290,8 +291,10 @@ const TenantManagement: React.FC = () => {
             </div>
             <div className="g-input-group">
               <label className="g-label">Téléphone</label>
-              <input className="g-input" value={editData.telephone || ''}
-                onChange={e => setEditData(d => ({ ...d, telephone: e.target.value }))} />
+              <PhoneInput
+                value={editData.telephone || ''}
+                onChange={v => setEditData(d => ({ ...d, telephone: v }))}
+              />
             </div>
             <div className="g-input-group">
               <label className="g-label">Email</label>

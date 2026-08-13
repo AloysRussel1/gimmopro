@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import AddressAutocomplete from './common/AddressAutocomplete';
 import '../assets/css/AddLogementForm.css';
 
 const AddLogementForm: React.FC = () => {
@@ -73,11 +74,10 @@ const AddLogementForm: React.FC = () => {
 
           <div className="g-input-group">
             <label className="g-label">Localisation *</label>
-            <input
-              className="g-input"
+            <AddressAutocomplete
               placeholder="Ex : Bonapriso, Douala"
               value={form.localisation}
-              onChange={e => set('localisation', e.target.value)}
+              onChange={v => set('localisation', v)}
             />
           </div>
 

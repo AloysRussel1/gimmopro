@@ -5,6 +5,8 @@ import {
   listAllLogementsForPicker, listCompartimentsForLogement,
   AdminLogementOption, AdminCompartimentOption,
 } from '../../api/admin';
+import PhoneInput from '../common/PhoneInput';
+import AddressAutocomplete from '../common/AddressAutocomplete';
 import './AdminResourceTable.css';
 
 // Table CRUD générique pilotée par config — une seule implémentation pour
@@ -23,7 +25,7 @@ export interface ColumnConfig<T> {
 export interface FieldConfig {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'textarea' | 'select' | 'compartiment-picker';
+  type: 'text' | 'number' | 'date' | 'textarea' | 'select' | 'compartiment-picker' | 'tel' | 'address';
   required?: boolean;
   options?: { value: string | number; label: string }[];
   optionsLoader?: () => Promise<{ value: string | number; label: string }[]>; // pour un 'select' dont les options dépendent d'un appel réseau (ex: liste des utilisateurs)
@@ -290,6 +292,10 @@ function AdminResourceTable<T extends { id: number }>({
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
+                ) : field.type === 'tel' ? (
+                  <PhoneInput value={value as string} onChange={v => setField(field.name, v)} />
+                ) : field.type === 'address' ? (
+                  <AddressAutocomplete value={value as string} onChange={v => setField(field.name, v)} />
                 ) : (
                   <input
                     className="g-input"

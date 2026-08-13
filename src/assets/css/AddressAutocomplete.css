@@ -1,0 +1,33 @@
+.g-address-autocomplete {
+  position: relative;
+}
+
+.g-address-autocomplete__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  box-shadow: var(--g-shadow-md);
+}
+
+.g-address-autocomplete__list li {
+  padding: 10px 12px;
+  border-radius: var(--g-radius-sm);
+  font-size: 14px;
+  color: var(--g-text);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.g-address-autocomplete__list li:hover {
+  background: var(--g-accent-soft, rgba(79, 70, 229, 0.08));
+}

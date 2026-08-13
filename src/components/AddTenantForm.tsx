@@ -5,6 +5,7 @@ import {
 } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import PhoneInput from './common/PhoneInput';
 import '../assets/css/AddTenantForm.css';
 
 interface Logement     { id: number; nom: string; }
@@ -170,9 +171,11 @@ const AddTenantForm: React.FC = () => {
             <div className="tf-section">
               <div className="g-input-group">
                 <label className="g-label">Téléphone *</label>
-                <input className="g-input" placeholder="690 123 456"
+                <PhoneInput
                   value={form.telephone}
-                  onChange={e => set('telephone', e.target.value)} />
+                  onChange={v => set('telephone', v)}
+                  required
+                />
               </div>
               <div className="g-input-group">
                 <label className="g-label">Numéro CNI *</label>

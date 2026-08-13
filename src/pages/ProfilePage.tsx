@@ -4,6 +4,8 @@ import { useHistory } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import AsyncBoundary from '../components/AsyncBoundary';
 import SkeletonLoader from '../components/SkeletonLoader';
+import PhoneInput from '../components/common/PhoneInput';
+import AddressAutocomplete from '../components/common/AddressAutocomplete';
 import '../assets/css/ProfilePage.css';
 
 interface Profile {
@@ -70,19 +72,18 @@ const ProfilePage: React.FC = () => {
 
                 <div className="g-input-group">
                   <label className="g-label">Téléphone</label>
-                  <input
-                    className="g-input" type="tel" placeholder="+237 6XX XXX XXX"
+                  <PhoneInput
                     value={form.telephone}
-                    onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))}
+                    onChange={v => setForm(f => ({ ...f, telephone: v }))}
                   />
                 </div>
 
                 <div className="g-input-group">
                   <label className="g-label">Adresse physique</label>
-                  <input
-                    className="g-input" placeholder="Quartier, ville"
+                  <AddressAutocomplete
+                    placeholder="Quartier, ville"
                     value={form.adresse}
-                    onChange={e => setForm(f => ({ ...f, adresse: e.target.value }))}
+                    onChange={v => setForm(f => ({ ...f, adresse: v }))}
                   />
                 </div>
 

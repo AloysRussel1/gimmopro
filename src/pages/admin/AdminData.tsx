@@ -88,7 +88,7 @@ const AdminData: React.FC = () => {
           ] as ColumnConfig<LogementRow>[]}
           formFields={[
             { name: 'nom', label: 'Nom', type: 'text', required: true },
-            { name: 'localisation', label: 'Localisation', type: 'text', required: true },
+            { name: 'localisation', label: 'Localisation', type: 'address', required: true },
             { name: 'description', label: 'Description', type: 'textarea' },
             { name: 'proprietaire', label: 'Propriétaire', type: 'select', required: true, optionsLoader: listAllUsersAsOptions },
           ] as FieldConfig[]}
@@ -110,7 +110,7 @@ const AdminData: React.FC = () => {
           formFields={[
             { name: 'nom_complet', label: 'Nom complet', type: 'text', required: true },
             { name: 'email', label: 'Email', type: 'text', required: true },
-            { name: 'telephone', label: 'Téléphone', type: 'text', required: true },
+            { name: 'telephone', label: 'Téléphone', type: 'tel', required: true },
             { name: 'cni', label: 'CNI', type: 'text', required: true },
             { name: 'compartiment', label: 'Compartiment', type: 'compartiment-picker', required: true },
             { name: 'date_debut_contrat', label: 'Date de début', type: 'date', required: true },
