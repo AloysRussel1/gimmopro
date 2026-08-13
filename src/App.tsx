@@ -102,6 +102,7 @@ const App: React.FC = () => {
           <PrivateRoute path="/locataire"  component={TenantManagement} exact />
           <PrivateRoute path="/ajouter-locataire" component={AddTenantForm} exact />
           <PrivateRoute path="/etat-des-lieux/nouveau" component={EtatDesLieuxForm} exact />
+          <PrivateRoute path="/etat-des-lieux/:id/modifier" component={EtatDesLieuxForm} exact />
           <PrivateRoute path="/paiement"   component={PaymentManagement} exact />
           <PrivateRoute path="/historique/:id" component={PaymentHistory} exact />
           <PrivateRoute path="/profil" component={ProfilePage} exact />
