@@ -126,15 +126,7 @@ const PaymentManagement: React.FC = () => {
   };
 
   const downloadRecu = (paiementId: number) => {
-    const url = `${axiosInstance.defaults.baseURL}paiements/${paiementId}/recu/`;
-    fetch(url, { credentials: 'include' })
-      .then(r => r.blob())
-      .then(blob => {
-        const link  = document.createElement('a');
-        link.href   = URL.createObjectURL(blob);
-        link.download = `recu_${paiementId}.pdf`;
-        link.click();
-      }).catch(console.error);
+    downloadFile(`paiements/${paiementId}/recu/`, `recu_${paiementId}.pdf`).catch(console.error);
   };
 
   return (

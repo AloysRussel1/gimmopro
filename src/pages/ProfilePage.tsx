@@ -22,6 +22,7 @@ const ProfilePage: React.FC = () => {
   const [form, setForm] = useState({ telephone: '', adresse: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -35,13 +36,15 @@ const ProfilePage: React.FC = () => {
   }, []);
 
   const handleSave = async () => {
-    setSaving(true); setSaved(false);
+    setSaving(true); setSaved(false); setError('');
     try {
       const res = await axiosInstance.put('profil/', form);
       setProfile(res.data);
       setSaved(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      const data = e?.response?.data;
+      setError(data?.telephone?.[0] || "Erreur lors de l'enregistrement. Vérifiez les informations.");
     } finally {
       setSaving(false);
     }
@@ -87,6 +90,7 @@ const ProfilePage: React.FC = () => {
                   />
                 </div>
 
+                {error && <p className="tf-error">⚠ {error}</p>}
                 {saved && <p className="profile-saved">✓ Profil mis à jour</p>}
 
                 <button className="g-btn g-btn--primary" onClick={handleSave} disabled={saving}>

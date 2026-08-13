@@ -4,6 +4,7 @@ import {
 } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
+import { previewPdf as previewPdfBlob } from '../utils/pdf';
 import '../assets/css/EtatDesLieuxForm.css';
 
 interface OccupantOption {
@@ -124,11 +125,7 @@ const EtatDesLieuxForm: React.FC = () => {
   };
 
   const downloadPdf = (edlId: number) => {
-    const url = `${axiosInstance.defaults.baseURL}etat-des-lieux/${edlId}/pdf/`;
-    fetch(url, { credentials: 'include' })
-      .then(res => res.blob())
-      .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
-      .catch(console.error);
+    previewPdfBlob(`etat-des-lieux/${edlId}/pdf/`).catch(console.error);
   };
 
   const occupantNomAffiche = preselectNom || occupants.find(o => o.id === occupantId)?.nom_complet;

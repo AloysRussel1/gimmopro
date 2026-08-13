@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '../api/axiosConfig';
+import { previewPdf } from '../utils/pdf';
 import '../assets/css/DocumentsSection.css';
 
 interface DocumentItem {
@@ -105,11 +106,7 @@ const DocumentsSection: React.FC<Props> = ({ occupantId, logementId }) => {
   };
 
   const handleView = (doc: DocumentItem) => {
-    const url = `${axiosInstance.defaults.baseURL}documents/${doc.id}/fichier/`;
-    fetch(url, { credentials: 'include' })
-      .then(res => res.blob())
-      .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
-      .catch(console.error);
+    previewPdf(`documents/${doc.id}/fichier/`).catch(console.error);
   };
 
   const handleDelete = async (doc: DocumentItem) => {

@@ -4,6 +4,7 @@ import {
   IonContent, IonProgressBar,
 } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
+import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import axiosInstance from '../api/axiosConfig';
 import PhoneInput from './common/PhoneInput';
 import '../assets/css/AddTenantForm.css';
@@ -77,6 +78,10 @@ const AddTenantForm: React.FC = () => {
   const validate = (): string => {
     if (step === 1 && !form.nom_complet)  return 'Le nom complet est requis.';
     if (step === 2 && !form.telephone)    return 'Le téléphone est requis.';
+    // Cohérent avec is_possible_number() côté backend (voir normaliser_telephone_e164) --
+    // signale une saisie incomplète tout de suite plutôt qu'un 400 tardif au moment
+    // du "Confirmer" final, plusieurs étapes plus loin.
+    if (step === 2 && !isPossiblePhoneNumber(form.telephone)) return 'Numéro de téléphone incomplet ou invalide.';
     if (step === 2 && !form.cni)          return 'Le numéro CNI est requis.';
     if (step === 3 && !form.logement)     return 'Sélectionnez un logement.';
     if (step === 3 && !form.compartiment) return 'Sélectionnez un compartiment.';
@@ -122,8 +127,9 @@ const AddTenantForm: React.FC = () => {
     } catch (e: any) {
       const data = e?.response?.data;
       if (data?.compartiment) setError(data.compartiment[0] || 'Compartiment invalide.');
-      else if (data?.cni)     setError('Ce numéro CNI existe déjà.');
-      else if (data?.email)   setError('Cet email est déjà utilisé.');
+      else if (data?.cni)       setError('Ce numéro CNI existe déjà.');
+      else if (data?.email)     setError('Cet email est déjà utilisé.');
+      else if (data?.telephone) setError(data.telephone[0] || 'Numéro de téléphone invalide.');
       else setError('Erreur lors de l\'enregistrement. Vérifiez les informations.');
     } finally {
       setSaving(false);

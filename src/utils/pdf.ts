@@ -1,12 +1,21 @@
 import axiosInstance from '../api/axiosConfig';
+import { getAccessToken } from '../api/tokenStore';
 
 /** Récupère un fichier protégé par JWT en blob -- un simple window.open(url)
  * ou <a href> ne fonctionnerait pas : la requête de la nouvelle page/du
  * téléchargement n'enverrait pas le cookie d'auth cross-site sans
- * `credentials: 'include'` (équivalent fetch de axios `withCredentials`). */
+ * `credentials: 'include'` (équivalent fetch de axios `withCredentials`).
+ * Ce fetch brut ne passe PAS par l'intercepteur axios (voir axiosConfig.ts)
+ * -- il faut donc y répéter manuellement l'ajout du header Authorization en
+ * secours (Safari/ITP bloque le cookie cross-site même bien configuré) :
+ * sans ça, tout téléchargement/aperçu échoue en 401 dès que le cookie ne
+ * suit pas, alors que les autres appels API (via axiosInstance) continuent
+ * de fonctionner normalement grâce au fallback Bearer. */
 async function fetchAuthBlob(path: string): Promise<Blob> {
   const url = `${axiosInstance.defaults.baseURL}${path}`;
-  const res = await fetch(url, { credentials: 'include' });
+  const accessToken = getAccessToken();
+  const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  const res = await fetch(url, { credentials: 'include', headers });
   if (!res.ok) throw new Error(`Échec du chargement du fichier (${res.status})`);
   return res.blob();
 }

@@ -6,7 +6,7 @@ import {
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
-import { previewPdf, downloadPdf } from '../utils/pdf';
+import { previewPdf, downloadPdf, downloadFile } from '../utils/pdf';
 import SkeletonLoader from '../components/SkeletonLoader';
 import PhoneInput from '../components/common/PhoneInput';
 import '../assets/css/TenantManagement.css';
@@ -82,15 +82,7 @@ const TenantManagement: React.FC = () => {
   };
 
   const handleContrat = (id: number) => {
-    const url = `${axiosInstance.defaults.baseURL}occupants/${id}/contrat/`;
-    fetch(url, { credentials: 'include' })
-      .then(res => res.blob())
-      .then(blob => {
-        const link  = document.createElement('a');
-        link.href   = URL.createObjectURL(blob);
-        link.download = `contrat_${id}.pdf`;
-        link.click();
-      }).catch(console.error);
+    downloadFile(`occupants/${id}/contrat/`, `contrat_${id}.pdf`).catch(console.error);
   };
 
   const openEdit = (o: Occupant) => {
@@ -156,7 +148,8 @@ const TenantManagement: React.FC = () => {
       setOccupants(prev => prev.map(o => o.id === editId ? { ...o, ...res.data } : o));
       setShowEdit(false);
     } catch (e: any) {
-      setEditError('Erreur lors de la modification.');
+      const data = e?.response?.data;
+      setEditError(data?.telephone?.[0] || 'Erreur lors de la modification.');
     } finally {
       setSaving(false);
     }
