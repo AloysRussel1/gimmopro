@@ -15,7 +15,7 @@ interface Occupant {
   id: number; nom_complet: string; loyer: string;
   statut: string; date_prochain_paiement: string;
   compartiment_nom: string; logement_nom: string;
-  telephone: string; email: string;
+  telephone: string; email: string; reste_a_payer: string;
 }
 interface Paiement {
   id: number; occupant: number; occupant_nom: string;
@@ -61,7 +61,12 @@ const PaymentManagement: React.FC = () => {
 
   const openModal  = (o: Occupant) => {
     setSelected(o);
-    setForm({ nombre_mois: '1', montant: o.loyer, date_debut: o.date_prochain_paiement, date_paiement: new Date().toISOString().split('T')[0], note: '', mode_paiement: 'ESPECES' });
+    // Si un solde reste dû sur la période en cours (paiement partiel déjà
+    // versé), on pré-remplit avec CE reste plutôt que le loyer plein --
+    // évite de laisser croire par défaut qu'un mois entier est encore dû.
+    const resteDu = parseFloat(o.reste_a_payer);
+    const montantDefaut = resteDu > 0 ? o.reste_a_payer : o.loyer;
+    setForm({ nombre_mois: '1', montant: montantDefaut, date_debut: o.date_prochain_paiement, date_paiement: new Date().toISOString().split('T')[0], note: '', mode_paiement: 'ESPECES' });
     setShowModal(true);
   };
 
@@ -253,6 +258,11 @@ const PaymentManagement: React.FC = () => {
               <button className="pay-modal__close" onClick={() => setShowModal(false)}>✕</button>
             </div>
             {selected && <p className="pay-modal__tenant">{selected.nom_complet}{selected.compartiment_nom ? ` · ${selected.compartiment_nom}` : ''}</p>}
+            {selected && parseFloat(selected.reste_a_payer) > 0 && (
+              <p className="pay-modal__tenant" style={{ color: 'var(--g-danger)', fontWeight: 600 }}>
+                Reste à payer sur la période en cours : {parseFloat(selected.reste_a_payer).toLocaleString('fr-FR')} FCFA
+              </p>
+            )}
 
             <div className="g-input-group">
               <label className="g-label">Nombre de mois</label>

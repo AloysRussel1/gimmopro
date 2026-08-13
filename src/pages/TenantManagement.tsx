@@ -15,7 +15,7 @@ interface Occupant {
   id: number; nom_complet: string; telephone: string; email: string;
   cni: string; numero_contrat: string; date_debut_contrat: string; date_fin_contrat: string | null;
   loyer: string; caution_versee: string; date_versement_caution: string | null;
-  date_prochain_paiement: string; statut: string; actif: boolean;
+  date_prochain_paiement: string; statut: string; actif: boolean; reste_a_payer: string;
   compartiment: number | null; compartiment_nom: string;
   logement: number | null; logement_nom: string; logement_loc: string;
 }
@@ -244,6 +244,14 @@ const TenantManagement: React.FC = () => {
                         {new Date(o.date_prochain_paiement).toLocaleDateString('fr-FR')}
                       </span>
                     </div>
+                    {parseFloat(o.reste_a_payer) > 0 && (
+                      <div className="tenant-detail">
+                        <span className="tenant-detail__label">Reste à payer</span>
+                        <span className="tenant-detail__value tenant-detail__value--red">
+                          {parseFloat(o.reste_a_payer).toLocaleString('fr-FR')} FCFA
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="tenant-card__actions">

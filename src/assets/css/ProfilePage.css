@@ -10,3 +10,4 @@
 
 .profile-saved { font-size: 13px; color: var(--g-success); margin-bottom: 12px; font-weight: 600; }
 .tf-error       { font-size: 13px; color: var(--g-danger);  margin-bottom: 12px; font-weight: 600; }
+.tf-optional    { font-weight: 400; text-transform: none; letter-spacing: normal; color: var(--g-text-3); }
