@@ -9,19 +9,42 @@
   padding: 20px 16px 32px;
 }
 
+/* ── Barre recherche + toggle de vue + ajout ─────────── */
+
 .logement-page__top {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .logement-page__search {
   flex: 1;
+  padding: 0 !important;
 }
 
+.log-view-toggle {
+  display: flex;
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.log-view-toggle__btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: var(--g-surface);
+  border: none;
+  color: var(--g-text-3);
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.log-view-toggle__btn + .log-view-toggle__btn { border-left: 1px solid var(--g-border); }
+.log-view-toggle__btn.active { background: var(--g-accent-soft); color: var(--g-accent); }
+.log-view-toggle__btn svg { width: 16px; height: 16px; }
+
 .logement-page__add {
-  background: var(--g-gold);
+  background: var(--g-accent);
   color: var(--g-accent-ink);
   border: none;
   border-radius: var(--g-radius-sm);
@@ -31,72 +54,243 @@
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.18s;
+  transition: background-color 0.15s;
+  flex-shrink: 0;
 }
-.logement-page__add:active { background: var(--g-gold-light); }
+.logement-page__add:active { background: var(--g-accent-hover); }
 
-.logement-list {
+/* ── Puces de filtre rapide ───────────────────────────── */
+
+.log-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 18px;
+  scrollbar-width: none;
+}
+.log-filters::-webkit-scrollbar { display: none; }
+
+.log-filter-chip {
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 100px;
+  padding: 7px 14px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--g-text-2);
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.log-filter-chip:active { transform: scale(0.97); }
+.log-filter-chip.active {
+  background: var(--g-accent-soft);
+  border-color: transparent;
+  color: var(--g-accent);
+}
+.log-filter-chip--danger.active {
+  background: var(--g-warning-dim);
+  color: var(--g-warning);
+}
+.log-filter-chip__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 100px;
+  background: var(--g-surface-2);
+  color: var(--g-text-3);
+  font-size: 10.5px; font-weight: 700;
+}
+.log-filter-chip.active .log-filter-chip__count {
+  background: rgba(255,255,255,0.6);
+  color: inherit;
+}
+
+/* ── Grille / liste de cartes ─────────────────────────── */
+
+.log-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px)  { .log-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .log-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.log-list {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.log-card {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-lg);
+  box-shadow: var(--g-shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.log-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--g-shadow-md);
+  border-color: var(--g-border-bright);
+}
+.log-card:active { transform: translateY(-1px); }
+
+/* -- Vue grille : couverture en header -- */
+.log-card--grille .log-card__cover {
+  position: relative;
+  padding: 18px;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #fff;
+}
+.log-card__cover-icon {
+  position: absolute; top: 14px; left: 16px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.18);
+  border-radius: 9px;
+  backdrop-filter: blur(2px);
+}
+.log-card__cover-icon svg { width: 15px; height: 15px; color: #fff; }
+.log-card__cover-title {
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 700;
+  color: #fff !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  padding-right: 90px;
+}
+
+.log-card__status-badge {
+  position: absolute; top: 14px; right: 14px;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(2px);
+}
+.log-card__status-badge--occupe  { color: var(--g-success); }
+.log-card__status-badge--vacant  { color: var(--g-info); }
+.log-card__status-badge--retard  { color: var(--g-warning); }
+
+/* -- Vue liste : rangée compacte, couverture réduite à une pastille -- */
+.log-card--liste {
+  display: flex;
+  align-items: center;
   gap: 14px;
+  padding: 10px 14px;
 }
+.log-card--liste .log-card__cover {
+  position: static;
+  width: 44px; height: 44px; min-height: 0; flex-shrink: 0;
+  border-radius: var(--g-radius-sm);
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.log-card--liste .log-card__cover-title,
+.log-card--liste .log-card__status-badge { display: none; }
+.log-card--liste .log-card__cover-icon { position: static; }
 
-.logement-card {
-  background: var(--g-surface) !important;
-  border: 1px solid var(--g-border) !important;
-  border-radius: var(--g-radius) !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  transition: border-color 0.2s !important;
+.log-card--liste .log-card__body {
+  flex: 1; min-width: 0; padding: 0;
+  display: flex; align-items: center; gap: 14px;
 }
-.logement-card:active {
-  border-color: var(--g-border-bright) !important;
-}
+.log-card--liste .log-card__main { flex: 1; min-width: 0; }
+.log-card--liste .log-card__chips,
+.log-card--liste .log-card__divider,
+.log-card--liste .log-card__tenant,
+.log-card--liste .g-btn { display: none; }
+.log-card--liste .log-card__title { display: block; }
+.log-card--liste .log-card__loc { margin-bottom: 0; }
+.log-card--liste .log-card__row { margin-bottom: 0; gap: 8px; flex-shrink: 0; }
+.log-card--liste .log-card__rent { margin-bottom: 0; font-size: 14px; white-space: nowrap; }
 
-.logement-header {
-  background: transparent !important;
-  border-bottom: 1px solid var(--g-border);
-  padding: 16px 18px 14px !important;
-}
-
-.logement-title {
-  font-family: var(--font-display) !important;
-  font-size: 18px !important;
-  font-weight: 600 !important;
+.log-card__title {
+  display: none;
+  font-family: var(--font-display); font-weight: 700; font-size: 14.5px;
   color: var(--g-text) !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 2px;
 }
 
-.logement-content {
-  background: transparent !important;
-  padding: 14px 18px 18px !important;
-  color: var(--g-text-2) !important;
-  font-size: 13px !important;
+.log-card__body {
+  padding: 16px;
 }
 
-.logement-content p {
+.log-card__loc {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12.5px; color: var(--g-text-2);
+  margin-bottom: 12px;
+}
+.log-card__loc svg { width: 12px; height: 12px; flex-shrink: 0; color: var(--g-text-3); }
+
+.log-card__chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 14px;
+}
+.log-card__chip {
+  background: var(--g-surface-2);
   color: var(--g-text-2);
-  margin-bottom: 6px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 11px; font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 100px;
 }
 
-.logement-content strong {
-  color: var(--g-text-3);
-  font-weight: 500;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.log-card__divider {
+  height: 1px;
+  background: var(--g-border);
+  margin: 0 0 12px;
 }
 
-.voir-plus-btn {
-  --background: var(--g-gold) !important;
-  --color: var(--g-accent-ink) !important;
-  --border-radius: 10px !important;
-  --box-shadow: none !important;
-  margin-top: 10px !important;
-  font-weight: 700 !important;
+.log-card__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
 }
+
+.log-card__tenant {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0;
+}
+.log-card__avatar {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--g-accent-soft);
+  color: var(--g-accent);
+  font-size: 11px; font-weight: 700;
+}
+.log-card__avatar--multi svg { width: 13px; height: 13px; }
+.log-card__tenant-name {
+  font-size: 13px; font-weight: 600; color: var(--g-text) !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.log-card__tenant-name--muted { color: var(--g-text-3) !important; font-weight: 500; }
+
+.log-card__pastille {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.log-card__pastille--occupe { background: var(--g-success); box-shadow: 0 0 0 3px var(--g-success-dim); }
+.log-card__pastille--vacant { background: var(--g-border-bright); }
+.log-card__pastille--retard { background: var(--g-warning); box-shadow: 0 0 0 3px var(--g-warning-dim); }
+
+.log-card__rent {
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 700;
+  color: var(--g-text) !important;
+  margin-bottom: 14px;
+}
+.log-card__rent span { font-size: 12px; font-weight: 600; color: var(--g-text-3); }
+.log-card__rent-unit { font-weight: 500; }
+
+/* ── États vides / chargement ─────────────────────────── */
 
 .logement-loading {
   display: flex;
@@ -110,7 +304,7 @@
 .logement-spinner {
   width: 32px; height: 32px;
   border: 2px solid var(--g-border);
-  border-top-color: var(--g-gold);
+  border-top-color: var(--g-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

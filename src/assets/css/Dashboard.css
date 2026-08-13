@@ -11,51 +11,9 @@
 .dash-portfolio-sub { font-size: 12.5px; color: var(--g-text-3); margin-top: 4px; }
 .dash-settings-btn   { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; }
 
-/* ── KPI cards ─────────────────────────────── */
-.kpi-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
-
-.kpi-card {
-  background: var(--g-surface); border: 1px solid var(--g-border);
-  border-radius: var(--g-radius); box-shadow: var(--g-shadow);
-  padding: 16px 18px;
-}
-.kpi-card--danger { border-color: rgba(220,38,38,0.25); }
-
-.kpi-card__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.kpi-card__icon {
-  width: 26px; height: 26px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.kpi-card__icon svg { width: 14px; height: 14px; }
-.kpi-card__icon--accent { background: var(--g-accent-soft); color: var(--g-accent); }
-.kpi-card__icon--danger { background: var(--g-danger-dim); color: var(--g-danger); }
-.kpi-card__label { font-size: 11.5px; font-weight: 600; color: var(--g-text-2); letter-spacing: 0.01em; }
-
-.kpi-card__value {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(20px, 5.5vw, 26px); color: var(--g-text) !important;
-  line-height: 1.1; margin-bottom: 8px;
-}
-.kpi-card__value--danger { color: var(--g-danger) !important; }
-.kpi-card__unit { font-size: 13px; font-weight: 600; color: var(--g-text-3); }
-
-.kpi-card__gauge { height: 6px; background: var(--g-surface-2); border-radius: 100px; overflow: hidden; margin-bottom: 6px; }
-.kpi-card__gauge-fill { height: 100%; background: var(--g-accent); border-radius: 100px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
-
-.kpi-card__sub { font-size: 12px; color: var(--g-text-3); }
-.kpi-card__net {
-  font-size: 11.5px; color: var(--g-text-3);
-  margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--g-border);
-}
-.kpi-card__net strong { color: var(--g-text); font-weight: 700; }
-.kpi-card__net-charges { color: var(--g-danger); }
-
-@media (min-width: 560px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (min-width: 900px) {
-  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
-}
+/* ── Cartes KPI : déplacées dans theme.css (.kpi-grid/.kpi-card*) ──
+   Devenues partagées avec LogementPage -- une seule définition pour
+   éviter la duplication entre les deux pages. */
 
 /* ── Sections génériques ───────────────────── */
 .dash-section { margin-bottom: 20px; }
