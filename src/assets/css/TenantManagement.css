@@ -88,19 +88,3 @@
   border-radius: var(--g-radius-sm); padding: 10px 14px;
   font-size: 13px; margin-bottom: 16px;
 }
-
-/* Hub "Documents & Reçus" (ÉTAPE 2) */
-.docs-hub-section { margin-bottom: 22px; }
-.docs-hub-section__title {
-  font-family: var(--font-display); font-size: 14px; font-weight: 700;
-  color: var(--g-text) !important; margin-bottom: 10px;
-}
-.docs-hub-list { display: flex; flex-direction: column; gap: 8px; }
-.docs-hub-list__item {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  background: var(--g-surface-2); border: 1px solid var(--g-border);
-  border-radius: var(--g-radius-sm); padding: 10px 14px;
-  font-family: var(--font-body); font-size: 13px; color: var(--g-text) !important;
-  cursor: pointer; text-align: left; width: 100%;
-}
-.docs-hub-list__item:active { background: var(--g-surface-3, var(--g-border)); }

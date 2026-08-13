@@ -177,6 +177,7 @@
   margin-bottom: 12px;
 }
 .hist-card__nom { font-weight: 600; font-size: 15px; color: var(--g-text) !important; }
+.hist-card__comp { font-size: 12px; color: var(--g-text-3); margin-bottom: 10px; }
 
 .hist-card__dates {
   display: flex; gap: 0; margin-bottom: 10px;

@@ -6,6 +6,7 @@ import {
 import { useHistory, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from './../api/axiosConfig';
 import DocumentsSection from '../components/DocumentsSection';
+import OccupantDocumentsHub, { OccupantDocumentsRef } from '../components/OccupantDocumentsHub';
 import './../assets/css/LogementDetails.css';
 
 interface OccupantMini {
@@ -26,6 +27,10 @@ interface Logement {
 interface Historique {
   id: number; nom_occupant: string; date_entree: string;
   date_sortie: string | null; loyer: string; duree_jours: number;
+}
+interface HistoriqueLocataire {
+  id: number; occupant: number | null; nom_occupant: string; compartiment_nom: string;
+  date_entree: string; date_sortie: string | null; loyer: string; duree_jours: number;
 }
 interface Depense {
   id: number; logement: number; libelle: string;
@@ -49,11 +54,21 @@ const LogementDetailsPage: React.FC = () => {
   const [logement,      setLogement]      = useState<Logement | null>(null);
   const [loading,       setLoading]       = useState(true);
 
-  // Historique
+  // Historique (par compartiment -- vue rapide existante)
   const [showHistorique,   setShowHistorique]   = useState(false);
   const [historiqueData,   setHistoriqueData]   = useState<Historique[]>([]);
   const [historiqueComp,   setHistoriqueComp]   = useState<string>('');
   const [loadingHistorique, setLoadingHistorique] = useState(false);
+
+  // Historique des locataires -- ÉTAPE 3 : chronologie complète à l'échelle
+  // du LOGEMENT entier (tous compartiments confondus), avec accès aux
+  // documents/paiements de chaque ancien occupant. Rien n'est masqué au
+  // départ d'un locataire (voir HistoriqueLogementView côté backend).
+  const [showHistLocataires,  setShowHistLocataires]  = useState(false);
+  const [histLocataires,      setHistLocataires]      = useState<HistoriqueLocataire[]>([]);
+  const [loadingHistLoc,      setLoadingHistLoc]      = useState(false);
+  const [histDocsOccupant,    setHistDocsOccupant]    = useState<OccupantDocumentsRef | null>(null);
+  const [loadingHistDocs,     setLoadingHistDocs]     = useState(false);
 
   // Documents
   const [showDocuments, setShowDocuments] = useState(false);
@@ -149,6 +164,34 @@ const LogementDetailsPage: React.FC = () => {
     }
   };
 
+  const handleHistoriqueLocataires = async () => {
+    setShowHistLocataires(true);
+    setLoadingHistLoc(true);
+    try {
+      const res = await axiosInstance.get(`logements/${id}/historique-locataires/`);
+      setHistLocataires(res.data);
+    } catch {
+      setHistLocataires([]);
+    } finally {
+      setLoadingHistLoc(false);
+    }
+  };
+
+  // Ouvre le hub Documents & Reçus pour un ANCIEN occupant -- fonctionne
+  // aussi bien pour un locataire actuel que pour un locataire parti :
+  // get_occupant_or_404 (backend) ne filtre jamais par actif=True.
+  const openHistDocs = async (occupantId: number) => {
+    setLoadingHistDocs(true);
+    try {
+      const res = await axiosInstance.get(`occupants/${occupantId}/`);
+      setHistDocsOccupant(res.data);
+    } catch {
+      window.alert("Ce locataire n'existe plus (supprimé) -- ses documents ne sont plus disponibles, seul l'historique de séjour ci-contre subsiste.");
+    } finally {
+      setLoadingHistDocs(false);
+    }
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -207,6 +250,9 @@ const LogementDetailsPage: React.FC = () => {
               </button>
               <button className="ld-add-btn ld-add-btn--outline" onClick={() => setShowDocuments(true)}>
                 📎 Documents
+              </button>
+              <button className="ld-add-btn ld-add-btn--outline" onClick={handleHistoriqueLocataires}>
+                🕓 Historique locataires
               </button>
             </div>
           </div>
@@ -385,6 +431,93 @@ const LogementDetailsPage: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+        </IonModal>
+
+        {/* Modal Historique des locataires -- ÉTAPE 3 : chronologie complète
+            à l'échelle du logement (tous compartiments), avec accès direct
+            aux documents/paiements de chaque ancien occupant. */}
+        <IonModal isOpen={showHistLocataires} onDidDismiss={() => setShowHistLocataires(false)}>
+          <div className="hist-modal">
+            <div className="hist-modal__head">
+              <div>
+                <p className="hist-modal__title">Historique des locataires</p>
+                <p className="hist-modal__comp">{logement?.nom}</p>
+              </div>
+              <button className="pay-modal__close" onClick={() => setShowHistLocataires(false)}>✕</button>
+            </div>
+
+            {loadingHistLoc ? (
+              <div className="g-loading"><div className="g-spinner" /></div>
+            ) : histLocataires.length === 0 ? (
+              <div className="g-empty">
+                <div className="g-empty__icon">🕓</div>
+                <p className="g-empty__text">Aucun locataire enregistré pour ce logement</p>
+              </div>
+            ) : (
+              <div className="hist-list">
+                {histLocataires.map(h => (
+                  <div key={h.id} className={`hist-card ${!h.date_sortie ? 'hist-card--actif' : ''}`}>
+                    <div className="hist-card__head">
+                      <p className="hist-card__nom">👤 {h.nom_occupant}</p>
+                      <span className={`g-badge ${!h.date_sortie ? 'g-badge--green' : 'g-badge--gray'}`}>
+                        {!h.date_sortie ? 'Actuel' : 'Parti'}
+                      </span>
+                    </div>
+                    <p className="hist-card__comp">{h.compartiment_nom}</p>
+                    <div className="hist-card__dates">
+                      <div className="hist-card__date">
+                        <span className="hist-card__date-label">Entrée</span>
+                        <span className="hist-card__date-val">
+                          {new Date(h.date_entree).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                      <div className="hist-card__date">
+                        <span className="hist-card__date-label">Sortie</span>
+                        <span className="hist-card__date-val">
+                          {h.date_sortie ? new Date(h.date_sortie).toLocaleDateString('fr-FR') : '—'}
+                        </span>
+                      </div>
+                      <div className="hist-card__date">
+                        <span className="hist-card__date-label">Durée</span>
+                        <span className="hist-card__date-val">{h.duree_jours} jours</span>
+                      </div>
+                    </div>
+                    <div className="hist-card__loyer">
+                      Loyer : <strong>{parseFloat(h.loyer).toLocaleString('fr-FR')} FCFA/mois</strong>
+                    </div>
+                    {h.occupant ? (
+                      <button
+                        className="g-btn g-btn--outline" style={{ marginTop: '10px' }}
+                        onClick={() => openHistDocs(h.occupant!)} disabled={loadingHistDocs}
+                      >
+                        📄 Documents & Reçus
+                      </button>
+                    ) : (
+                      <p className="pdf-preview-modal__hint" style={{ marginTop: '10px' }}>
+                        Locataire supprimé — documents indisponibles.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </IonModal>
+
+        {/* Sous-hub Documents & Reçus pour le locataire (actuel ou parti)
+            sélectionné depuis l'historique ci-dessus -- même composant que
+            le menu ⋮ de la page Locataires (ÉTAPE 2). */}
+        <IonModal isOpen={!!histDocsOccupant} onDidDismiss={() => setHistDocsOccupant(null)}>
+          <div className="dep-modal">
+            <div className="pay-modal__head" style={{ marginBottom: '20px' }}>
+              <div>
+                <h2 className="pay-modal__title">Documents & Reçus</h2>
+                <p className="hist-modal__comp">{histDocsOccupant?.nom_complet}</p>
+              </div>
+              <button className="pay-modal__close" onClick={() => setHistDocsOccupant(null)}>✕</button>
+            </div>
+            {histDocsOccupant && <OccupantDocumentsHub occupant={histDocsOccupant} />}
           </div>
         </IonModal>
 

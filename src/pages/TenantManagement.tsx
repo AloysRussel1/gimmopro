@@ -5,11 +5,9 @@ import {
 } from '@ionic/react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosInstance from '../api/axiosConfig';
-import DocumentsSection from '../components/DocumentsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
 import PhoneInput from '../components/common/PhoneInput';
-import PdfPreviewModal from '../components/common/PdfPreviewModal';
-import SendReceiptModal from '../components/SendReceiptModal';
+import OccupantDocumentsHub from '../components/OccupantDocumentsHub';
 import '../assets/css/TenantManagement.css';
 
 interface Occupant {
@@ -19,12 +17,6 @@ interface Occupant {
   date_prochain_paiement: string; statut: string; actif: boolean; reste_a_payer: string;
   compartiment: number | null; compartiment_nom: string;
   logement: number | null; logement_nom: string; logement_loc: string;
-}
-
-interface PaiementResume {
-  id: number; montant_verse: string; nombre_mois: number;
-  date_paiement: string; date_debut_periode: string; date_fin_periode: string;
-  statut: string; recu_token: string;
 }
 
 const TenantManagement: React.FC = () => {
@@ -43,20 +35,9 @@ const TenantManagement: React.FC = () => {
 
   // Modal "Documents & Reçus" -- hub unique regroupant contrat, caution,
   // reçus de loyer et pièces jointes (ÉTAPE 2 : remplace les items séparés
-  // qui surchargeaient le menu ⋮).
-  const [docsFor,      setDocsFor]      = useState<Occupant | null>(null);
-  const [loyerPaiements, setLoyerPaiements] = useState<PaiementResume[]>([]);
-  const [loyerLoading, setLoyerLoading] = useState(false);
-
-  // Aperçus PDF (contrat / caution) -- ouverts DEPUIS le hub "Documents &
-  // Reçus", jamais directement depuis le menu ⋮ : le bouton "Envoyer par
-  // e-mail" (quand disponible) vit maintenant à l'intérieur de l'aperçu,
-  // plus dans le menu principal.
-  const [contratPreviewOpen, setContratPreviewOpen] = useState(false);
-  const [cautionPreviewOpen, setCautionPreviewOpen] = useState(false);
-  // Reçu de loyer sélectionné dans la liste -- réutilise SendReceiptModal
-  // (aperçu + WhatsApp/SMS/e-mail), déjà construit pour ce cas précis.
-  const [loyerSendTarget, setLoyerSendTarget] = useState<PaiementResume | null>(null);
+  // qui surchargeaient le menu ⋮). Contenu factorisé dans OccupantDocumentsHub
+  // (ÉTAPE 3 : réutilisé aussi pour les anciens occupants d'un logement).
+  const [docsFor, setDocsFor] = useState<Occupant | null>(null);
 
   // Menu d'actions secondaires (bottom sheet) -- déclenché par le bouton ⋮
   // sur chaque carte, pour ne garder que l'action principale visible en
@@ -98,14 +79,7 @@ const TenantManagement: React.FC = () => {
     setOccupants(prev => prev.filter(o => o.id !== id));
   };
 
-  const openDocs = (o: Occupant) => {
-    setDocsFor(o);
-    setLoyerLoading(true);
-    axiosInstance.get(`paiements/?occupant_id=${o.id}`)
-      .then(r => setLoyerPaiements(r.data))
-      .catch(console.error)
-      .finally(() => setLoyerLoading(false));
-  };
+  const openDocs = (o: Occupant) => setDocsFor(o);
 
   const openEdit = (o: Occupant) => {
     setEditId(o.id);
@@ -340,99 +314,9 @@ const TenantManagement: React.FC = () => {
               </div>
               <button className="pay-modal__close" onClick={() => setDocsFor(null)}>✕</button>
             </div>
-
-            {docsFor && (() => {
-              const o = docsFor;
-              const cautionPrete = parseFloat(o.caution_versee) > 0 && !!o.date_versement_caution;
-              return (
-                <>
-                  <div className="docs-hub-section">
-                    <p className="docs-hub-section__title">📄 Contrat de bail</p>
-                    <button className="g-btn g-btn--outline" onClick={() => setContratPreviewOpen(true)}>
-                      👁 Aperçu
-                    </button>
-                  </div>
-
-                  <div className="docs-hub-section">
-                    <p className="docs-hub-section__title">🔐 Reçu de caution</p>
-                    {!cautionPrete && (
-                      <p className="pdf-preview-modal__hint">
-                        Renseignez d'abord le montant et la date de versement de la caution (bouton "Modifier").
-                      </p>
-                    )}
-                    <button className="g-btn g-btn--outline" onClick={() => setCautionPreviewOpen(true)} disabled={!cautionPrete}>
-                      👁 Aperçu
-                    </button>
-                  </div>
-
-                  <div className="docs-hub-section">
-                    <p className="docs-hub-section__title">🧾 Reçus de loyer</p>
-                    {loyerLoading ? (
-                      <p className="pdf-preview-modal__hint">Chargement…</p>
-                    ) : loyerPaiements.length === 0 ? (
-                      <p className="pdf-preview-modal__hint">Aucun paiement enregistré pour l'instant.</p>
-                    ) : (
-                      <div className="docs-hub-list">
-                        {loyerPaiements.map(p => (
-                          <button key={p.id} className="docs-hub-list__item" onClick={() => setLoyerSendTarget(p)}>
-                            <span>{new Date(p.date_debut_periode).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
-                            <span>{parseFloat(p.montant_verse).toLocaleString('fr-FR')} FCFA</span>
-                            <span className={`g-badge ${p.statut === 'Payé' ? 'g-badge--green' : p.statut === 'Partiel' ? 'g-badge--gold' : 'g-badge--red'}`}>
-                              {p.statut}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="g-divider" />
-
-                  <div className="docs-hub-section">
-                    <p className="docs-hub-section__title">📎 Pièces jointes</p>
-                    <DocumentsSection occupantId={o.id} />
-                  </div>
-                </>
-              );
-            })()}
+            {docsFor && <OccupantDocumentsHub occupant={docsFor} />}
           </div>
         </IonModal>
-
-        {/* Aperçus PDF -- ouverts depuis le hub ci-dessus. Le bouton "Envoyer
-            par e-mail" du reçu de caution vit ICI (dans l'aperçu), plus dans
-            le menu ⋮ principal -- pas de bouton équivalent pour le contrat,
-            faute d'un envoi serveur réel pour ce document (contrairement à
-            la caution, qui envoie une vraie pièce jointe par e-mail). */}
-        <PdfPreviewModal
-          isOpen={contratPreviewOpen}
-          onClose={() => setContratPreviewOpen(false)}
-          title="Contrat de bail"
-          fetchPath={docsFor ? `occupants/${docsFor.id}/contrat/` : null}
-          downloadFilename={`contrat_${docsFor?.id}.pdf`}
-        />
-        <PdfPreviewModal
-          isOpen={cautionPreviewOpen}
-          onClose={() => setCautionPreviewOpen(false)}
-          title="Reçu de caution"
-          fetchPath={
-            docsFor && parseFloat(docsFor.caution_versee) > 0 && docsFor.date_versement_caution
-              ? `occupants/${docsFor.id}/caution/recu/` : null
-          }
-          downloadFilename={`recu_caution_${docsFor?.id}.pdf`}
-          notReadyMessage="Renseignez d'abord le montant et la date de versement de la caution."
-          onSendEmail={docsFor ? async () => {
-            const res = await axiosInstance.post(`occupants/${docsFor.id}/caution/envoyer/`);
-            return res.data;
-          } : undefined}
-        />
-        {loyerSendTarget && docsFor && (
-          <SendReceiptModal
-            isOpen={!!loyerSendTarget}
-            onClose={() => setLoyerSendTarget(null)}
-            occupant={docsFor}
-            paiement={loyerSendTarget}
-          />
-        )}
 
         {/* Actions secondaires -- tiroir natif remontant du bas sur mobile.
             Réduit à l'essentiel (ÉTAPE 2) : la gestion documentaire est
